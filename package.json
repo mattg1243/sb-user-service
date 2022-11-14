@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc",
-    "prodstart": "node ./dist/src/app.js",
+    "prodstart": "node ./dist/app.js",
     "devstart": "tsc-watch --noClear -p ./tsconfig.json --onSuccess \"node ./dist/app.js\"",
     "migrate": "rm -rf dist && npm run build && typeorm-ts-node-commonjs migration:generate ./src/migrations/addedEntity -d ./src/database/dataSource.ts",
     "db:push": "rm -rf dist && npm run build && typeorm-ts-node-commonjs migration:run -d ./src/database/dataSource.ts",
