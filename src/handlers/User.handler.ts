@@ -1,25 +1,23 @@
 import { NextFunction, Request, Response } from 'express';
 import { createUser, findUserByEmail } from '../services/User.service';
 import { CreateUserInput } from '../database/schemas/User.schema';
-import User from '../database/models/User.entity';
 
-export const indexHandler = async (
-  req: Request<{}, {}, {}, { email: string }>,
-  res: Response,
-  next: NextFunction
-) => {
+export const indexHandler = async (req: Request<{}, {}, {}, { email: string }>, res: Response, next: NextFunction) => {
   if (!req.query) {
     return res.status(200).json({ message: 'User service online!' });
   } else {
     const email = req.query.email;
     try {
       const user = await findUserByEmail(email);
+      console.log(user);
       if (!user) {
         return res.status(401).json({ message: 'No user was found' });
       }
-      return res.status(200).json(user);
-    } catch (err) {
-      console.error(err);
+      // create the response variable with only needed fields
+      const userResponse = { id: user._id, email: user.email, username: user.username, password: user.password };
+      return res.status(200).json(userResponse);
+    } catch (err: any) {
+      console.error(err.code);
       return res.status(401).json({ message: 'Invalid credentials' });
     }
   }

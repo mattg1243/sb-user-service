@@ -9,7 +9,7 @@ export const createUser = async (input: CreateUserInput) => {
   return (await AppDataSource.manager.save(AppDataSource.manager.create(User, input))) as User;
 };
 
-export const findUserByEmail = async (email: string) => {
+export const findUserByEmail = async (email: string, select?: {}) => {
   return await userRepository.findOneBy({ email: email });
 };
 

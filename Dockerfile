@@ -8,7 +8,7 @@ COPY tsconfig.json /app/
 RUN npm install
 RUN npm run build
 
-EXPOSE 8081
+EXPOSE 8080
 CMD ["npm", "run", "prodstart"]
 
 # need to implement 2 stage Docker build eventually
