@@ -6,8 +6,7 @@ import { GetUserForLoginRequest, GetUserForLoginResponse } from '../proto/user_p
 
 export const indexHandler = async (req: Request, res: Response, next: NextFunction) => {
     return res.status(200).json({ message: 'User service online!' });
-  }
-};
+}
 
 export const registerUserHandler = async (req: Request<{}, {}, CreateUserInput>, res: Response, next: NextFunction) => {
   const { email, password, artistName } = req.body;
