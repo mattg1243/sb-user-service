@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package user;
+
+message GetUserForLoginRequest {
+  string email = 1;
+}
+
+message GetUserForLoginResponse {
+  string id = 1;
+  string email = 2;
+  string artist_name = 3;
+  string password = 4;
+}
+
+service User {
+  // called by Auth service to get a User object for token signing
+  rpc GetUserForLogin(GetUserForLoginRequest) 
+    returns(GetUserForLoginResponse) {};
+}

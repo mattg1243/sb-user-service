@@ -1,0 +1,11 @@
+version: v1beta1
+build:
+  excludes: [node_modules]
+  roots:
+    - .
+lint:
+  use:
+    - DEFAULT
+breaking:
+  use:
+    - WIRE_JSON
