@@ -2,17 +2,11 @@ import { object, string, TypeOf, z } from 'zod';
 
 export const createUserSchema = object({
   body: object({
-    // fname: string({
-    //   required_error: 'First name is required',
-    // }),
-    // lname: string({
-    //   required_error: 'Last name is required',
-    // }),
     email: string({
       required_error: 'Email is required',
     }).email('Invalid email address'),
-    username: string({
-      required_error: 'Username is required',
+    artistName: string({
+      required_error: 'Artist name is required',
     }),
     password: string({
       required_error: 'Password is required',

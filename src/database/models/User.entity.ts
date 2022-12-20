@@ -9,7 +9,7 @@ export default class User extends Model {
   email: string;
 
   @Column({ unique: true })
-  username: string;
+  artistName: string;
 
   @Column()
   password: string;
