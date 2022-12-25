@@ -37,8 +37,12 @@ AppDataSource.initialize().then(() => {
 const startGrpcServer = (port: number) => {
   const server = new Server();
   server.addService(UserService, { getUserForLogin });
-  server.bindAsync(`localhost:${port}`, ServerCredentials.createInsecure(), () => {
-    server.start();
+  server.bindAsync(`localhost:${port}`, ServerCredentials.createInsecure(), (err, port) => {
+    if (err) {
+      console.error(err);
+    } else {
+      server.start();
+      console.log(`gRPC User server listening on port ${port}...`);
+    }
   });
-  console.log(`gRPC User server listening on port ${port}...`);
 };
