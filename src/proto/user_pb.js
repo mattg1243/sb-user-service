@@ -1,4 +1,4 @@
-// source: user.proto
+// source: proto/user.proto
 /**
  * @fileoverview
  * @enhanceable
@@ -13,7 +13,13 @@
 
 var jspb = require('google-protobuf');
 var goog = jspb;
-var global = (function() { return this || window || global || self || Function('return this')(); }).call(null);
+var global = (function() {
+  if (this) { return this; }
+  if (typeof window !== 'undefined') { return window; }
+  if (typeof global !== 'undefined') { return global; }
+  if (typeof self !== 'undefined') { return self; }
+  return Function('return this')();
+}.call(null));
 
 goog.exportSymbol('proto.user.GetUserForLoginRequest', null, global);
 goog.exportSymbol('proto.user.GetUserForLoginResponse', null, global);

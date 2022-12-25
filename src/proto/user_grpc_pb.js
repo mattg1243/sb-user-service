@@ -2,28 +2,28 @@
 
 'use strict';
 var grpc = require('@grpc/grpc-js');
-var user_pb = require('./user_pb.js');
+var proto_user_pb = require('../proto/user_pb.js');
 
 function serialize_user_GetUserForLoginRequest(arg) {
-  if (!(arg instanceof user_pb.GetUserForLoginRequest)) {
+  if (!(arg instanceof proto_user_pb.GetUserForLoginRequest)) {
     throw new Error('Expected argument of type user.GetUserForLoginRequest');
   }
   return Buffer.from(arg.serializeBinary());
 }
 
 function deserialize_user_GetUserForLoginRequest(buffer_arg) {
-  return user_pb.GetUserForLoginRequest.deserializeBinary(new Uint8Array(buffer_arg));
+  return proto_user_pb.GetUserForLoginRequest.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
 function serialize_user_GetUserForLoginResponse(arg) {
-  if (!(arg instanceof user_pb.GetUserForLoginResponse)) {
+  if (!(arg instanceof proto_user_pb.GetUserForLoginResponse)) {
     throw new Error('Expected argument of type user.GetUserForLoginResponse');
   }
   return Buffer.from(arg.serializeBinary());
 }
 
 function deserialize_user_GetUserForLoginResponse(buffer_arg) {
-  return user_pb.GetUserForLoginResponse.deserializeBinary(new Uint8Array(buffer_arg));
+  return proto_user_pb.GetUserForLoginResponse.deserializeBinary(new Uint8Array(buffer_arg));
 }
 
 
@@ -33,8 +33,8 @@ getUserForLogin: {
     path: '/user.User/GetUserForLogin',
     requestStream: false,
     responseStream: false,
-    requestType: user_pb.GetUserForLoginRequest,
-    responseType: user_pb.GetUserForLoginResponse,
+    requestType: proto_user_pb.GetUserForLoginRequest,
+    responseType: proto_user_pb.GetUserForLoginResponse,
     requestSerialize: serialize_user_GetUserForLoginRequest,
     requestDeserialize: deserialize_user_GetUserForLoginRequest,
     responseSerialize: serialize_user_GetUserForLoginResponse,
