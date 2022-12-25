@@ -13,8 +13,8 @@ import indexRouter from './routes';
 
 dotenv.config();
 
-let PORT_GRPC = process.env.PORT_GRPC || 4080;
-let PORT_HTTP = process.env.PORT_HTTP || 8080;
+let PORT_GRPC = process.env.PORT_GRPC || '4080';
+let PORT_HTTP = process.env.PORT_HTTP || '8080';
 
 AppDataSource.initialize().then(() => {
   // create express app
@@ -31,13 +31,13 @@ AppDataSource.initialize().then(() => {
   });
 
   // testing out grpc server here
-  startGrpcServer(PORT_GRPC as number);
+  startGrpcServer(PORT_GRPC as string);
 });
 
-const startGrpcServer = (port: number) => {
+const startGrpcServer = (port: string) => {
   const server = new Server();
   server.addService(UserService, { getUserForLogin });
-  server.bindAsync(`localhost:${port}`, ServerCredentials.createInsecure(), (err, port) => {
+  server.bindAsync('localhost:' + port, ServerCredentials.createInsecure(), (err, port) => {
     if (err) {
       console.error(err);
     } else {
