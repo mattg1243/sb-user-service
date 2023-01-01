@@ -16,11 +16,13 @@ dotenv.config();
 let PORT_GRPC = process.env.PORT_GRPC || '4080';
 let PORT_HTTP = process.env.PORT_HTTP || '8080';
 
+const CLIENT_HOST = process.env.CLIENT_HOST || 'http://localhost:3000';
+
 AppDataSource.initialize().then(() => {
   // create express app
   const app = express();
   // middleware
-  app.use(cors());
+  app.use(cors({ credentials: true, origin: CLIENT_HOST }));
   app.use(express.json());
   app.use(cookieParser());
   // routes
@@ -31,7 +33,7 @@ AppDataSource.initialize().then(() => {
   });
 
   // testing out grpc server here
-  startGrpcServer(PORT_GRPC as string);
+  // startGrpcServer(PORT_GRPC as string);
 });
 
 const startGrpcServer = (port: string) => {
