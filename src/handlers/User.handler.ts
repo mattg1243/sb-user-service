@@ -1,12 +1,13 @@
 import { NextFunction, Request, Response } from 'express';
-import { createUser, findUserByEmail } from '../services/User.service';
+import { createUser, findUserByEmail, findUserById, updateUserById } from '../services/User.service';
 import { CreateUserInput } from '../database/schemas/User.schema';
 import { sendUnaryData, ServerUnaryCall } from '@grpc/grpc-js';
 import { GetUserForLoginRequest, GetUserForLoginResponse } from '../proto/user_pb';
+import { verifyJwt } from '../jwt';
 
 export const indexHandler = async (req: Request, res: Response, next: NextFunction) => {
-    return res.status(200).json({ message: 'User service online!' });
-}
+  return res.status(200).json({ message: 'User service online!' });
+};
 
 export const registerUserHandler = async (req: Request<{}, {}, CreateUserInput>, res: Response, next: NextFunction) => {
   const { email, password, artistName } = req.body;
@@ -30,6 +31,61 @@ export const registerUserHandler = async (req: Request<{}, {}, CreateUserInput>,
   }
 };
 
+export const getUserHandler = async (req: Request, res: Response) => {
+  const userId = req.query.id as string;
+
+  if (!userId) {
+    return res.status(401).json({ message: 'No user ID provided upon server request' });
+  } else {
+    try {
+      const user = await findUserById(userId);
+      res.status(200).json(user?.toJSON());
+    } catch (err) {
+      console.error(err);
+      res.status(503).json({ message: 'error getting user:\n', err });
+    }
+  }
+};
+// TODO: make a zod schema for this request body
+export const updateUserHandler = async (req: Request, res: Response) => {
+  const { artistName, bio, linkedSocials } = req.body;
+  const token = req.cookies['sb-access-token'];
+  const userInfo = verifyJwt(token);
+
+  if (!userInfo) {
+    return res.status(401).json({ message: 'Invalid/missing user credentials provided with request' });
+  } else {
+    try {
+      const updatedUser = await updateUserById(userInfo.user.id, { artistName, bio, linkedSocials });
+      return res.status(200).json({ message: 'User updated succesfully' });
+    } catch (err) {
+      console.error(err);
+      return res.status(503).json(err);
+    }
+  }
+};
+
+// temp function for using http instead of gRPC for the free deployments
+export const getUserForLoginHTTP = async (req: Request, res: Response) => {
+  const { email } = req.body;
+  try {
+    const user = await findUserByEmail(email);
+    console.log(user);
+    if (!user) {
+      return res.status(401).json({ message: 'No user found with that email address' });
+    }
+    const userResponse = {
+      id: user._id,
+      email: user.email,
+      artistName: user.artistName,
+      password: user.password,
+    };
+    return res.status(200).json(userResponse);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: 'error finding user by email' });
+  }
+};
 // TODO: create a directory dedicated to all gRPC mapped handler functions
 export const getUserForLogin = async (
   call: ServerUnaryCall<GetUserForLoginRequest, GetUserForLoginResponse>,
