@@ -11,7 +11,7 @@ export default class User extends Model {
   @Column({ unique: true })
   artistName: string;
 
-  @Column()
+  @Column({ select: false })
   password: string;
 
   @Column({ nullable: true })
@@ -19,6 +19,16 @@ export default class User extends Model {
   // all images will be stored in the s3 bucket
   @Column({ nullable: true })
   avatar: string;
+
+  @Column({ type: 'jsonb', nullable: true, array: false })
+  linkedSocials: {
+    youtube: string;
+    spotify: string;
+    soundcloud: string;
+    appleMusic: string;
+    twitter: string;
+    instagram: string;
+  };
 
   @Column({ nullable: true })
   fname: string;
@@ -45,7 +55,7 @@ export default class User extends Model {
   verified: boolean;
 
   toJSON() {
-    return { ...this, passwordHash: undefined };
+    return { ...this, password: undefined };
   }
   // password hasing
   @BeforeInsert()
