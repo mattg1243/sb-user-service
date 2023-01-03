@@ -20,7 +20,7 @@ export default class User extends Model {
   @Column({ nullable: true })
   avatar: string;
 
-  @Column({ type: 'jsonb', nullable: true, array: false })
+  @Column({ type: 'jsonb', array: false, default: {}})
   linkedSocials: {
     youtube: string;
     spotify: string;

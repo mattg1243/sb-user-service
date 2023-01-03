@@ -4,6 +4,9 @@ import { CreateUserInput } from '../database/schemas/User.schema';
 import { sendUnaryData, ServerUnaryCall } from '@grpc/grpc-js';
 import { GetUserForLoginRequest, GetUserForLoginResponse } from '../proto/user_pb';
 import { verifyJwt } from '../jwt';
+import axios from 'axios';
+
+const BEATS_HOST = process.env.BEATS_HOST || 'http://localhost:8082';
 
 export const indexHandler = async (req: Request, res: Response, next: NextFunction) => {
   return res.status(200).json({ message: 'User service online!' });
@@ -57,7 +60,13 @@ export const updateUserHandler = async (req: Request, res: Response) => {
   } else {
     try {
       const updatedUser = await updateUserById(userInfo.user.id, { artistName, bio, linkedSocials });
-      return res.status(200).json({ message: 'User updated succesfully' });
+      // check if artistName has been updated and if so, update their beats
+      if (artistName !== userInfo.user.artistName) {
+        const updatedBeatsResponse = await axios.put(`${BEATS_HOST}/update-artist-name/${userInfo.user.id}`, {
+          artistName,
+        });
+      }
+      return res.status(200).json({ message: 'user info successfully updated' });
     } catch (err) {
       console.error(err);
       return res.status(503).json(err);
