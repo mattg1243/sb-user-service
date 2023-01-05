@@ -24,6 +24,7 @@ AppDataSource.initialize().then(() => {
   // middleware
   app.use(cors({ credentials: true, origin: CLIENT_HOST }));
   app.use(express.json());
+  app.use(express.urlencoded({ limit: '10mb', extended: true }));
   app.use(cookieParser());
   // routes
   app.use(indexRouter);
