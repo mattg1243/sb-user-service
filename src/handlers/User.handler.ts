@@ -5,6 +5,7 @@ import { sendUnaryData, ServerUnaryCall } from '@grpc/grpc-js';
 import { GetUserForLoginRequest, GetUserForLoginResponse } from '../proto/user_pb';
 import { verifyJwt } from '../jwt';
 import axios from 'axios';
+import { uploadFileToS3 } from '../bucket/upload';
 
 const BEATS_HOST = process.env.BEATS_HOST || 'http://localhost:8082';
 
@@ -52,6 +53,7 @@ export const getUserHandler = async (req: Request, res: Response) => {
 // TODO: make a zod schema for this request body
 export const updateUserHandler = async (req: Request, res: Response) => {
   const { artistName, bio, linkedSocials } = req.body;
+  // check if the avatar field contains a new file
   const token = req.cookies['sb-access-token'];
   const userInfo = verifyJwt(token);
 
@@ -71,6 +73,36 @@ export const updateUserHandler = async (req: Request, res: Response) => {
       console.error(err);
       return res.status(503).json(err);
     }
+  }
+};
+
+export const uploadAvatarHandler = async (req: Request, res: Response) => {
+  const token = req.cookies['sb-access-token'];
+  const userInfo = verifyJwt(token);
+  const userId = userInfo?.user.id;
+
+  if (!userId || !userInfo) {
+    return res.status(401).json({ message: 'no auth token detected' });
+  }
+
+  const newAvatar = req.file;
+  if (!newAvatar) {
+    return res.status(400).json({ message: 'no file detecting while updating avatar' });
+  }
+
+  try {
+    const uploadAvatarRes = await uploadFileToS3(newAvatar);
+    if (!uploadAvatarRes) {
+      console.log('error uploading image file');
+      return res.status(500).json('error uploading image');
+    }
+    const avatarKey = uploadAvatarRes.Key;
+    const updateUserRes = updateUserById(userId, { avatar: avatarKey });
+    console.log(updateUserRes);
+    return res.status(200).json({ message: 'avatar update successfully' });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: 'an error occured while uploading your new avatar to storage' });
   }
 };
 
