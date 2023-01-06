@@ -64,10 +64,21 @@ export const updateUserHandler = async (req: Request, res: Response) => {
       const updatedUser = await updateUserById(userInfo.user.id, { artistName, bio, linkedSocials });
       // check if artistName has been updated and if so, update their beats
       if (artistName !== userInfo.user.artistName) {
-        const updatedBeatsResponse = await axios.put(`${BEATS_HOST}/update-artist-name/${userInfo.user.id}`, {
-          artistName,
-        });
+        // this axios request will be made a gRPC remote function call
+        const updatedBeatsResponse = await axios.post(
+          `${BEATS_HOST}/update-artist-name/${userInfo.user.id}`,
+          {
+            artistName,
+          },
+          {
+            withCredentials: true,
+            headers: {
+              Cookie: `sb-access-token=${token}`,
+            },
+          }
+        );
       }
+      console.log(updatedUser);
       return res.status(200).json({ message: 'user info successfully updated' });
     } catch (err) {
       console.error(err);
