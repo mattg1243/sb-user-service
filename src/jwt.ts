@@ -12,9 +12,13 @@ interface IDecodedToken {
 
 // verify tokens
 export const verifyJwt = (token: string): IDecodedToken | null => {
+  if (!token) {
+    console.log('No access token detected.');
+    return null;
+  }
   // this needs optimization
   let key = process.env.ACCESS_SECRET;
-  console.log('jwt key: \n', key);
+  // console.log('jwt key: \n', key);
   if (!key) key = '';
   try {
     const key64 = Buffer.from(key, 'base64').toString('ascii');
