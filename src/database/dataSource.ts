@@ -1,5 +1,5 @@
 import { DataSource } from 'typeorm';
-import User from './models/User.entity'
+import User from './models/User.entity';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -12,7 +12,7 @@ export const AppDataSource = new DataSource({
   password: process.env.DB_PASSWORD,
   database: 'sweatshop_calabasas',
   synchronize: true,
-  logging: true,
+  logging: false,
   entities: [User],
   subscribers: [],
   migrations: [],
