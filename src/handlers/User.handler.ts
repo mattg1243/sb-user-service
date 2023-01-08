@@ -52,48 +52,45 @@ export const getUserHandler = async (req: Request, res: Response) => {
 };
 // TODO: make a zod schema for this request body
 export const updateUserHandler = async (req: Request, res: Response) => {
-  const { artistName, bio, linkedSocials } = req.body;
-  // check if the avatar field contains a new file
-  const token = req.cookies['sb-access-token'];
-  const userInfo = verifyJwt(token);
+  const user = req.user;
+  const token = req.token;
+  if (!user) {
+    console.log('Middleware failed to attach user to request ');
+    return res.status(400).json({ message: 'Middleware failed to attach user to request ' });
+  }
 
-  if (!userInfo) {
-    return res.status(401).json({ message: 'Invalid/missing user credentials provided with request' });
-  } else {
-    try {
-      const updatedUser = await updateUserById(userInfo.user.id, { artistName, bio, linkedSocials });
-      // check if artistName has been updated and if so, update their beats
-      if (artistName !== userInfo.user.artistName) {
-        // this axios request will be made a gRPC remote function call
-        const updatedBeatsResponse = await axios.post(
-          `${BEATS_HOST}/update-artist-name/${userInfo.user.id}`,
-          {
-            artistName,
+  const { artistName, bio, linkedSocials } = req.body;
+  try {
+    const updatedUser = await updateUserById(user.id, { artistName, bio, linkedSocials });
+    // check if artistName has been updated and if so, update their beats
+    if (artistName !== user.artistName) {
+      // this axios request will be made a gRPC remote function call
+      const updatedBeatsResponse = await axios.post(
+        `${BEATS_HOST}/update-artist-name/${user.id}`,
+        {
+          artistName,
+        },
+        {
+          withCredentials: true,
+          headers: {
+            Cookie: `sb-access-token=${token}`,
           },
-          {
-            withCredentials: true,
-            headers: {
-              Cookie: `sb-access-token=${token}`,
-            },
-          }
-        );
-      }
-      console.log(updatedUser);
-      return res.status(200).json({ message: 'user info successfully updated' });
-    } catch (err) {
-      console.error(err);
-      return res.status(503).json(err);
+        }
+      );
     }
+    console.log(updatedUser);
+    return res.status(200).json({ message: 'user info successfully updated' });
+  } catch (err) {
+    console.error(err);
+    return res.status(503).json(err);
   }
 };
 
 export const uploadAvatarHandler = async (req: Request, res: Response) => {
-  const token = req.cookies['sb-access-token'];
-  const userInfo = verifyJwt(token);
-  const userId = userInfo?.user.id;
-
-  if (!userId || !userInfo) {
-    return res.status(401).json({ message: 'no auth token detected' });
+  const user = req.user;
+  if (!user) {
+    console.log('Middleware failed to attach user to request ');
+    return res.status(400).json({ message: 'Middleware failed to attach user to request ' });
   }
 
   const newAvatar = req.file;
@@ -108,7 +105,7 @@ export const uploadAvatarHandler = async (req: Request, res: Response) => {
       return res.status(500).json('error uploading image');
     }
     const avatarKey = uploadAvatarRes.Key;
-    const updateUserRes = updateUserById(userId, { avatar: avatarKey });
+    const updateUserRes = updateUserById(user.id, { avatar: avatarKey });
     console.log(updateUserRes);
     return res.status(200).json({ message: 'avatar update successfully' });
   } catch (err) {
