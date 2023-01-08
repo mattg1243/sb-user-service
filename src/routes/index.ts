@@ -1,6 +1,7 @@
 import Router from 'express';
 import path from 'path';
 import multer from 'multer';
+import { verifyUser } from '../middleware/verifyUser';
 import {
   indexHandler,
   registerUserHandler,
@@ -19,8 +20,9 @@ const upload = multer({
 router.get('/', getUserHandler);
 router.post('/login', getUserForLoginHTTP);
 router.post('/register', registerUserHandler);
-router.post('/update', updateUserHandler);
-router.post('/avatar', upload.single('newAvatar'), uploadAvatarHandler);
+// PROTECTED
+router.post('/update', verifyUser, updateUserHandler);
+router.post('/avatar', verifyUser, upload.single('newAvatar'), uploadAvatarHandler);
 
 router.get(
   '*',
