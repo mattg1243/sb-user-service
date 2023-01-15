@@ -4,7 +4,7 @@ export const determineFileType = (file: Express.Multer.File): string => {
   // return variable
   let bucketLocationPrefix: string;
   const audioTypes = ['mp3', 'mp4', 'wav'];
-  const imgTypes = ['jpeg', 'png'];
+  const imgTypes = ['jpeg', 'jpg', 'png'];
   // store filename
   const fileName = file.originalname;
   // take the extension from the file
