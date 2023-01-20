@@ -50,6 +50,22 @@ export const getUserHandler = async (req: Request, res: Response) => {
     }
   }
 };
+
+export const getAvatarHandler = async (req: Request, res: Response) => {
+  const userId = req.query.id as string;
+
+  if (!userId) {
+    return res.status(401).json({ message: 'No user ID provided upon server request' });
+  } else {
+    try {
+      const user = await findUserById(userId);
+      return res.status(200).json(user?.avatar);
+    } catch (err) {
+      console.error(err);
+      res.status(503).json({ message: 'error getting user avatar:\n', err });
+    }
+  }
+};
 // TODO: make a zod schema for this request body
 export const updateUserHandler = async (req: Request, res: Response) => {
   const user = req.user;

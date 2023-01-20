@@ -6,6 +6,7 @@ import {
   indexHandler,
   registerUserHandler,
   getUserHandler,
+  getAvatarHandler,
   updateUserHandler,
   getUserForLoginHTTP,
   uploadAvatarHandler,
@@ -18,11 +19,13 @@ const upload = multer({
 });
 
 router.get('/', getUserHandler);
+router.get('/avatar', getAvatarHandler);
 router.post('/login', getUserForLoginHTTP);
 router.post('/register', registerUserHandler);
 // PROTECTED
 router.post('/update', verifyUser, updateUserHandler);
 router.post('/avatar', verifyUser, upload.single('newAvatar'), uploadAvatarHandler);
+
 
 router.get(
   '*',
