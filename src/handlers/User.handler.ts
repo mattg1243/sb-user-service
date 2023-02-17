@@ -3,9 +3,9 @@ import { createUser, findUserByEmail, findUserById, updateUserById } from '../se
 import { CreateUserInput } from '../database/schemas/User.schema';
 import { sendUnaryData, ServerUnaryCall } from '@grpc/grpc-js';
 import { GetUserForLoginRequest, GetUserForLoginResponse } from '../proto/user_pb';
-import { verifyJwt } from '../jwt';
 import axios from 'axios';
 import { uploadFileToS3 } from '../bucket/upload';
+import { removeFollower, addFollower } from '../services/UsersFollowing.service';
 
 const BEATS_HOST = process.env.BEATS_HOST || 'http://localhost:8082';
 
@@ -28,10 +28,10 @@ export const registerUserHandler = async (req: Request<{}, {}, CreateUserInput>,
     return res.status(200).json({ message: 'user registered succesfully', user });
   } catch (err: any) {
     if (err.code === '23505') {
-      return res.status(403).json({ message: 'A user with this email / username already exists.' });
+      return res.status(403).json({ message: 'A user with this email or username already exists.' });
     }
     console.error(err);
-    return res.status(500).json({ message: 'failed to create the user', err });
+    return res.status(500).json({ message: 'Failed to create the user', err });
   }
 };
 
@@ -127,6 +127,41 @@ export const uploadAvatarHandler = async (req: Request, res: Response) => {
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: 'an error occured while uploading your new avatar to storage' });
+  }
+};
+
+export const followUserHandler = async (req: Request, res: Response) => {
+  console.log('follow route hit');
+  const user = req.user;
+  const { userToFollow } = req.body;
+  console.log('req.body: ', req.body);
+
+  if (user && userToFollow) {
+    try {
+      await addFollower(user.id, userToFollow);
+    } catch (err: any) {
+      res.status(200).json({ message: 'Follower added' });
+    }
+  } else {
+    res.status(400).json({ message: 'Invalid request' });
+  }
+};
+
+export const unfollowUserHandler = async (req: Request, res: Response) => {
+  console.log('unfollow user route hit');
+  const user = req.user;
+  const { userToUnfollow } = req.body;
+  console.log('req.body', req.body);
+
+  if (user && userToUnfollow) {
+    try {
+      await removeFollower(user.id, userToUnfollow);
+      res.status(200).json({ message: 'Follower removed' });
+    } catch (err: any) {
+      return res.status(500).json({ message: err.message });
+    }
+  } else {
+    res.status(400).json({ message: 'Invalid request' });
   }
 };
 

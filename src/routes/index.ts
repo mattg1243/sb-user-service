@@ -2,6 +2,7 @@ import Router from 'express';
 import path from 'path';
 import multer from 'multer';
 import { verifyUser } from '../middleware/verifyUser';
+import { followUserHandler, unfollowUserHandler } from '../handlers/User.handler';
 import {
   indexHandler,
   registerUserHandler,
@@ -25,7 +26,8 @@ router.post('/register', registerUserHandler);
 // PROTECTED
 router.post('/update', verifyUser, updateUserHandler);
 router.post('/avatar', verifyUser, upload.single('newAvatar'), uploadAvatarHandler);
-
+router.post('/follow', verifyUser, followUserHandler);
+router.post('/unfollow', verifyUser, unfollowUserHandler);
 
 router.get(
   '*',
