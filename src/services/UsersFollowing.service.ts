@@ -8,7 +8,7 @@ export const addFollower = async (userId: string, followerId: string) => {
   // get user
   const user = await usersFollowingRepository.findOne({ where: { user_id: userId } });
   // if the user doesnt follow anyone yet, create their row in the table
-  if (!user) {
+  if (!user || !user.following) {
     usersFollowingRepository.insert({ user_id: userId, following: [followerId] });
   } else {
     user.following.push(followerId);
@@ -19,7 +19,7 @@ export const addFollower = async (userId: string, followerId: string) => {
 
 export const removeFollower = async (userId: string, followerIdToRemove: string) => {
   const user = await usersFollowingRepository.findOne({ where: { user_id: userId } });
-  if (!user) {
+  if (!user || !user.following) {
     throw new Error('This user does not exist in the users_followig table');
   } else {
     const followerIndex = user.following.indexOf(followerIdToRemove);
@@ -29,6 +29,20 @@ export const removeFollower = async (userId: string, followerIdToRemove: string)
       // remove the user from the following array
       user.following.splice(followerIndex, 1);
       user.save();
+    }
+  }
+};
+
+export const isFollowing = async (userId: string, followedUserId: string) => {
+  const user = await usersFollowingRepository.findOne({ where: { user_id: userId } });
+  if (!user) {
+    throw new Error('This user does not exist in the users_followig table');
+  } else {
+    const followerIndex = user.following.indexOf(followedUserId);
+    if (followerIndex === -1) {
+      return false;
+    } else {
+      return true;
     }
   }
 };
