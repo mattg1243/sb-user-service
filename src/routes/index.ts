@@ -2,6 +2,7 @@ import Router from 'express';
 import path from 'path';
 import multer from 'multer';
 import { verifyUser } from '../middleware/verifyUser';
+import { getCreditsBalanceHandler } from '../handlers/User.handler';
 import {
   registerUserHandler,
   getFollowersHandler,
@@ -14,6 +15,7 @@ import {
   updateUserHandler,
   getUserForLoginHTTP,
   uploadAvatarHandler,
+  addCreditsHandler,
 } from '../handlers/User.handler';
 
 const router = Router();
@@ -28,12 +30,14 @@ router.post('/login', getUserForLoginHTTP);
 router.post('/register', registerUserHandler);
 router.get('/followers', getFollowersHandler);
 router.get('/following', getFollowingHandler);
-router.get('/isfollowing', isFollowingHandler)
+router.get('/isfollowing', isFollowingHandler);
 // PROTECTED
 router.post('/update', verifyUser, updateUserHandler);
 router.post('/avatar', verifyUser, upload.single('newAvatar'), uploadAvatarHandler);
 router.post('/follow', verifyUser, followUserHandler);
 router.post('/unfollow', verifyUser, unfollowUserHandler);
+router.post('/add-credits', verifyUser, addCreditsHandler);
+router.get('/credits-balance', verifyUser, getCreditsBalanceHandler);
 
 router.get(
   '*',

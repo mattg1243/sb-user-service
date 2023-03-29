@@ -1,5 +1,12 @@
 import { NextFunction, Request, Response } from 'express';
-import { createUser, findUserByEmail, findUserById, updateUserById } from '../services/User.service';
+import {
+  addCredits,
+  createUser,
+  findUserByEmail,
+  findUserById,
+  getCreditsBalance,
+  updateUserById,
+} from '../services/User.service';
 import { CreateUserInput } from '../database/schemas/User.schema';
 import { sendUnaryData, ServerUnaryCall } from '@grpc/grpc-js';
 import { GetUserForLoginRequest, GetUserForLoginResponse } from '../proto/user_pb';
@@ -187,6 +194,31 @@ export const isFollowingHandler = async (req: Request, res: Response) => {
     console.error(err);
     return res.status(500).json({ message: 'An error occured' });
   }
+};
+
+// FOR TESTING PURPOSES ONLY - should be made a chron job
+export const addCreditsHandler = async (req: Request, res: Response) => {
+  const { creditsToAdd } = req.body;
+  const userId = req.user?.id;
+  if (!userId || !creditsToAdd) {
+    return res.status(400);
+  }
+  try {
+    const newBalance = await addCredits(userId, creditsToAdd);
+    return res.status(200).json({ message: 'User credits added successfully', creditBalance: newBalance });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ message: err });
+  }
+};
+
+export const getCreditsBalanceHandler = async (req: Request, res: Response) => {
+  const userId = req.user?.id;
+  if (!userId) {
+    return res.status(400).json({ message: 'No userId detected in request query string' });
+  }
+  const creditBalance = await getCreditsBalance(userId as string);
+  return res.status(200).json({ creditBalance });
 };
 
 // temp function for using http instead of gRPC for the free deployments

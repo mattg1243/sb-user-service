@@ -27,3 +27,24 @@ export const findUser = async (query: Object) => {
 export const updateUserById = async (userId: string, updatedFields: {}) => {
   return await userRepository.update({ _id: userId }, updatedFields);
 };
+
+export const addCredits = async (userId: string, creditsToAdd: number) => {
+  const user = await findUserById(userId);
+  if (!user) {
+    return Promise.reject('No user found with this ID');
+  }
+  console.log('Current credit balance: ', user.creditsToSpend);
+  user.creditsToSpend += creditsToAdd;
+  console.log('New credit balance: ', user.creditsToSpend);
+  await userRepository.save(user);
+  return Promise.resolve(user.creditsToSpend);
+};
+
+export const getCreditsBalance = async (userId: string) => {
+  const user = await findUserById(userId);
+  if (!user) {
+    return Promise.reject('No user found with this ID');
+  }
+  const creditsBalance = user.creditsToSpend;
+  return Promise.resolve(creditsBalance);
+};
