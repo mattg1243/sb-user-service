@@ -1,14 +1,12 @@
-import { Entity, Column, OneToMany, ManyToOne } from "typeorm";
+import { Entity, Column, ManyToOne } from 'typeorm';
 import Model from './Model.entity';
-import User from "./User.entity";
+import User from './User.entity';
 
-@Entity('users_following')
+@Entity('following')
 export default class UsersFollowing extends Model {
-  
   @Column()
   user_id: string;
 
-  @ManyToOne(() => User, (user) => user._id)
+  @Column('simple-array', { nullable: true })
   following: string[];
-  
 }
