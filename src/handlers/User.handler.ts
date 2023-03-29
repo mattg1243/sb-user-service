@@ -5,7 +5,7 @@ import { sendUnaryData, ServerUnaryCall } from '@grpc/grpc-js';
 import { GetUserForLoginRequest, GetUserForLoginResponse } from '../proto/user_pb';
 import axios from 'axios';
 import { uploadFileToS3 } from '../bucket/upload';
-import { removeFollower, addFollower } from '../services/UsersFollowing.service';
+import { removeFollower, addFollower, isFollowing } from '../services/UsersFollowing.service';
 
 const BEATS_HOST = process.env.BEATS_HOST || 'http://localhost:8082';
 
@@ -139,8 +139,10 @@ export const followUserHandler = async (req: Request, res: Response) => {
   if (user && userToFollow) {
     try {
       await addFollower(user.id, userToFollow);
-    } catch (err: any) {
       res.status(200).json({ message: 'Follower added' });
+    } catch (err: any) {
+      console.error(err);
+      return res.status(500).json({ message: 'An error occured' });
     }
   } else {
     res.status(400).json({ message: 'Invalid request' });
@@ -158,10 +160,32 @@ export const unfollowUserHandler = async (req: Request, res: Response) => {
       await removeFollower(user.id, userToUnfollow);
       res.status(200).json({ message: 'Follower removed' });
     } catch (err: any) {
+      console.error(err);
       return res.status(500).json({ message: err.message });
     }
   } else {
     res.status(400).json({ message: 'Invalid request' });
+  }
+};
+
+export const getFollowersHandler = async (req: Request, res: Response) => {
+  console.log('get followers route hit');
+};
+
+export const getFollowingHandler = async (req: Request, res: Response) => {
+  console.log('get following route hit');
+};
+
+export const isFollowingHandler = async (req: Request, res: Response) => {
+  const { user, userToCheck } = req.query;
+  console.log('is following route hit ');
+  console.log(user, userToCheck);
+  try {
+    const following = await isFollowing(user as string, userToCheck as string);
+    return res.status(200).json({ isFollowing: following });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: 'An error occured' });
   }
 };
 
