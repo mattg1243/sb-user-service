@@ -5,6 +5,7 @@ import {
   findUserByEmail,
   findUserById,
   getCreditsBalance,
+  subCredits,
   updateUserById,
 } from '../services/User.service';
 import { CreateUserInput } from '../database/schemas/User.schema';
@@ -208,6 +209,21 @@ export const addCreditsHandler = async (req: Request, res: Response) => {
     return res.status(200).json({ message: 'User credits added successfully', creditBalance: newBalance });
   } catch (err) {
     console.log(err);
+    return res.status(500).json({ message: err });
+  }
+};
+
+export const subCreditsHandler = async (req: Request, res: Response) => {
+  const { creditsToSub } = req.body;
+  const userId = req.user?.id;
+  if (!creditsToSub || !userId) {
+    return res.status(400);
+  }
+  try {
+    const newBalance = subCredits(userId, creditsToSub);
+    return res.status(200).json({ message: 'User credits subtracted successfully', creditBalance: newBalance });
+  } catch (err) {
+    console.error(err);
     return res.status(500).json({ message: err });
   }
 };

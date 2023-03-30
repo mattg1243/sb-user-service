@@ -2,7 +2,7 @@ import Router from 'express';
 import path from 'path';
 import multer from 'multer';
 import { verifyUser } from '../middleware/verifyUser';
-import { getCreditsBalanceHandler } from '../handlers/User.handler';
+import { getCreditsBalanceHandler, subCreditsHandler } from '../handlers/User.handler';
 import {
   registerUserHandler,
   getFollowersHandler,
@@ -37,6 +37,7 @@ router.post('/avatar', verifyUser, upload.single('newAvatar'), uploadAvatarHandl
 router.post('/follow', verifyUser, followUserHandler);
 router.post('/unfollow', verifyUser, unfollowUserHandler);
 router.post('/add-credits', verifyUser, addCreditsHandler);
+router.post('/sub-credits', verifyUser, subCreditsHandler)
 router.get('/credits-balance', verifyUser, getCreditsBalanceHandler);
 
 router.get(

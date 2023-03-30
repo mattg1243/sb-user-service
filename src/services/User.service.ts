@@ -40,6 +40,18 @@ export const addCredits = async (userId: string, creditsToAdd: number) => {
   return Promise.resolve(user.creditsToSpend);
 };
 
+export const subCredits = async (userId: string, creditsToSub: number) => {
+  const user = await findUserById(userId);
+  if (!user) {
+    return Promise.reject('No user found with this ID');
+  }
+  console.log('Current credit balance: ', user.creditsToSpend);
+  user.creditsToSpend -= creditsToSub;
+  console.log('New credit balance: ', user.creditsToSpend);
+  await userRepository.save(user);
+  return Promise.resolve(user.creditsToSpend);
+};
+
 export const getCreditsBalance = async (userId: string) => {
   const user = await findUserById(userId);
   if (!user) {
