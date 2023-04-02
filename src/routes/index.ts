@@ -37,7 +37,7 @@ router.post('/avatar', verifyUser, upload.single('newAvatar'), uploadAvatarHandl
 router.post('/follow', verifyUser, followUserHandler);
 router.post('/unfollow', verifyUser, unfollowUserHandler);
 router.post('/add-credits', verifyUser, addCreditsHandler);
-router.post('/sub-credits', verifyUser, subCreditsHandler)
+router.post('/sub-credits', subCreditsHandler)
 router.get('/credits-balance', verifyUser, getCreditsBalanceHandler);
 
 router.get(

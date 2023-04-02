@@ -214,8 +214,7 @@ export const addCreditsHandler = async (req: Request, res: Response) => {
 };
 
 export const subCreditsHandler = async (req: Request, res: Response) => {
-  const { creditsToSub } = req.body;
-  const userId = req.user?.id;
+  const { userId, creditsToSub } = req.body;
   if (!creditsToSub || !userId) {
     return res.status(400);
   }
