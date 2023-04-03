@@ -219,7 +219,7 @@ export const subCreditsHandler = async (req: Request, res: Response) => {
     return res.status(400);
   }
   try {
-    const newBalance = subCredits(userId, creditsToSub);
+    const newBalance = await subCredits(userId, creditsToSub);
     return res.status(200).json({ message: 'User credits subtracted successfully', creditBalance: newBalance });
   } catch (err) {
     console.error(err);
