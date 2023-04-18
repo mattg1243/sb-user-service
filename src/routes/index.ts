@@ -4,12 +4,14 @@ import multer from 'multer';
 import { verifyUser } from '../middleware/verifyUser';
 import { getCreditsBalanceHandler, subCreditsHandler } from '../handlers/User.handler';
 import {
-  registerUserHandler,
-  getFollowersHandler,
-  getFollowingHandler,
   followUserHandler,
   unfollowUserHandler,
+  getFollowersHandler,
+  getFollowingHandler,
   isFollowingHandler,
+} from '../handlers/UserFollowing.handler';
+import {
+  registerUserHandler,
   getUserHandler,
   getAvatarHandler,
   updateUserHandler,
@@ -37,7 +39,7 @@ router.post('/avatar', verifyUser, upload.single('newAvatar'), uploadAvatarHandl
 router.post('/follow', verifyUser, followUserHandler);
 router.post('/unfollow', verifyUser, unfollowUserHandler);
 router.post('/add-credits', verifyUser, addCreditsHandler);
-router.post('/sub-credits', subCreditsHandler)
+router.post('/sub-credits', subCreditsHandler);
 router.get('/credits-balance', verifyUser, getCreditsBalanceHandler);
 
 router.get(
