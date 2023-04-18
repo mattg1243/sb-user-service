@@ -4,9 +4,13 @@ import { AppDataSource } from '../database/dataSource';
 // load userfollowing repository
 const usersFollowingRepository = AppDataSource.getRepository(UsersFollowing);
 
+const getRowFromRepository = async (userId: string) => {
+  return await usersFollowingRepository.findOne({ where: { user_id: userId } });
+};
+
 export const addFollower = async (userId: string, followerId: string) => {
   // get user
-  const user = await usersFollowingRepository.findOne({ where: { user_id: userId } });
+  const user = await getRowFromRepository(userId);
   // if the user doesnt follow anyone yet, create their row in the table
   if (!user || !user.following) {
     usersFollowingRepository.insert({ user_id: userId, following: [followerId] });
@@ -18,7 +22,7 @@ export const addFollower = async (userId: string, followerId: string) => {
 };
 
 export const removeFollower = async (userId: string, followerIdToRemove: string) => {
-  const user = await usersFollowingRepository.findOne({ where: { user_id: userId } });
+  const user = await getRowFromRepository(userId);
   if (!user || !user.following) {
     throw new Error('This user does not exist in the users_followig table');
   } else {
@@ -34,7 +38,7 @@ export const removeFollower = async (userId: string, followerIdToRemove: string)
 };
 
 export const isFollowing = async (userId: string, followedUserId: string) => {
-  const user = await usersFollowingRepository.findOne({ where: { user_id: userId } });
+  const user = await getRowFromRepository(userId);
   if (!user) {
     throw new Error('This user does not exist in the users_followig table');
   } else {
@@ -59,6 +63,20 @@ export const getFollowers = async (userId: string) => {
     return followers;
   } catch (err) {
     console.error(err);
-    return Promise.reject('An error occured getting follower count:');
+    return Promise.reject('An error occured getting follower count');
+  }
+};
+
+export const getFollowing = async (userId: string) => {
+  try {
+    const user = await getRowFromRepository(userId);
+    if (!user) {
+      throw new Error('This user does not exist in the user_following table');
+    } else {
+      return user.following;
+    }
+  } catch (err) {
+    console.error(err);
+    return Promise.reject('An error occured getting follower count');
   }
 };
