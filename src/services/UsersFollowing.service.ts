@@ -46,3 +46,19 @@ export const isFollowing = async (userId: string, followedUserId: string) => {
     }
   }
 };
+
+export const getFollowers = async (userId: string) => {
+  try {
+    const queryResult = await usersFollowingRepository
+      .createQueryBuilder()
+      .where('UsersFollowing.following like :following', { following: `%${userId}%` })
+      .select('UsersFollowing.following')
+      .getOne();
+    // extract only the IDs of followers to return
+    const followers = queryResult?.following;
+    return followers;
+  } catch (err) {
+    console.error(err);
+    return Promise.reject('An error occured getting follower count:');
+  }
+};
