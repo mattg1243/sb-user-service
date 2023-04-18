@@ -13,7 +13,7 @@ import { sendUnaryData, ServerUnaryCall } from '@grpc/grpc-js';
 import { GetUserForLoginRequest, GetUserForLoginResponse } from '../proto/user_pb';
 import axios from 'axios';
 import { uploadFileToS3 } from '../bucket/upload';
-import { removeFollower, addFollower, isFollowing } from '../services/UsersFollowing.service';
+import { removeFollower, addFollower, isFollowing, getFollowers } from '../services/UsersFollowing.service';
 
 const BEATS_HOST = process.env.BEATS_HOST || 'http://localhost:8082';
 
@@ -177,7 +177,18 @@ export const unfollowUserHandler = async (req: Request, res: Response) => {
 };
 
 export const getFollowersHandler = async (req: Request, res: Response) => {
-  console.log('get followers route hit');
+  const { user } = req.query;
+  if (!user) {
+    return res.status(400).json({ message: 'No userID found in query strin' });
+  }
+  try {
+    const followers = await getFollowers(user as string);
+    console.log('followers from service fn:\n', followers);
+    return res.status(200).json({ followers });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: 'An error occured.' });
+  }
 };
 
 export const getFollowingHandler = async (req: Request, res: Response) => {
