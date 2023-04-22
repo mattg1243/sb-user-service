@@ -1,5 +1,8 @@
 import UsersFollowing from '../database/models/UsersFollowing.entity';
 import { AppDataSource } from '../database/dataSource';
+import { CustomErr, CustomErrCodes } from '../utils/CustomErr';
+
+// TODO: implement CustomErr class for all thrown errors
 
 // load userfollowing repository
 const usersFollowingRepository = AppDataSource.getRepository(UsersFollowing);
@@ -40,7 +43,7 @@ export const removeFollower = async (userId: string, followerIdToRemove: string)
 export const isFollowing = async (userId: string, followedUserId: string) => {
   const user = await getRowFromRepository(userId);
   if (!user) {
-    throw new Error('This user does not exist in the users_followig table');
+    throw new CustomErr('This user does not exist in the users_followig table', CustomErrCodes.DNE);
   } else {
     const followerIndex = user.following.indexOf(followedUserId);
     if (followerIndex === -1) {
@@ -51,15 +54,22 @@ export const isFollowing = async (userId: string, followedUserId: string) => {
   }
 };
 
-export const getFollowers = async (userId: string) => {
+export const getFollowers = async (userId: string): Promise<Array<string | null>> => {
   try {
     const queryResult = await usersFollowingRepository
-      .createQueryBuilder()
-      .where('UsersFollowing.following like :following', { following: `%${userId}%` })
-      .select('UsersFollowing.following')
-      .getOne();
+      .createQueryBuilder('user')
+      .select('user.user_id')
+      .where('following like :following', { following: `%${userId}%` })
+      // .select('UsersFollowing.user_id')
+      .getRawMany();
+    console.log('Raw query results:\n', queryResult);
     // extract only the IDs of followers to return
-    const followers = queryResult?.following;
+    let followers: Array<string | null>;
+    if (!queryResult) {
+      followers = [];
+    } else {
+      followers = queryResult.map((row) => row.user_user_id);
+    }
     return followers;
   } catch (err) {
     console.error(err);
@@ -67,11 +77,11 @@ export const getFollowers = async (userId: string) => {
   }
 };
 
-export const getFollowing = async (userId: string) => {
+export const getFollowing = async (userId: string): Promise<Array<string | null>> => {
   try {
     const user = await getRowFromRepository(userId);
     if (!user) {
-      throw new Error('This user does not exist in the user_following table');
+      return [];
     } else {
       return user.following;
     }
