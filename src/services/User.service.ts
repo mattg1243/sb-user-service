@@ -2,6 +2,8 @@ import User from '../database/models/User.entity';
 import { CreateUserInput } from '../database/schemas/User.schema';
 import { AppDataSource } from '../database/dataSource';
 
+// TODO: implement CustomErr class for all thrown errors
+
 // load user repository
 const userRepository = AppDataSource.getRepository(User);
 

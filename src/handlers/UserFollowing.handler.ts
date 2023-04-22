@@ -7,6 +7,8 @@ import {
   isFollowing,
 } from '../services/UsersFollowing.service';
 
+// TODO: implement CustomErr class for all thrown errors
+
 export const followUserHandler = async (req: Request, res: Response) => {
   console.log('follow route hit');
   const user = req.user;
