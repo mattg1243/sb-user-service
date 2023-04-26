@@ -20,28 +20,6 @@ export const indexHandler = async (req: Request, res: Response, next: NextFuncti
   return res.status(200).json({ message: 'User service online!' });
 };
 
-export const registerUserHandler = async (req: Request<{}, {}, CreateUserInput>, res: Response, next: NextFunction) => {
-  const { email, password, artistName } = req.body;
-  console.log('artistName: ', artistName);
-  try {
-    const user = await createUser({
-      email,
-      artistName,
-      password,
-    });
-
-    console.log(`  --- user registered : ${artistName}  ---  `);
-    // this needs to call the auth service and generate tokens for the new user here
-    return res.status(200).json({ message: 'user registered succesfully', user });
-  } catch (err: any) {
-    if (err.code === '23505') {
-      return res.status(403).json({ message: 'A user with this email or username already exists.' });
-    }
-    console.error(err);
-    return res.status(500).json({ message: 'Failed to create the user', err });
-  }
-};
-
 export const getUserHandler = async (req: Request, res: Response) => {
   const userId = req.query.id as string;
 
@@ -73,13 +51,35 @@ export const getAvatarHandler = async (req: Request, res: Response) => {
     }
   }
 };
+
+export const registerUserHandler = async (req: Request<{}, {}, CreateUserInput>, res: Response, next: NextFunction) => {
+  const { email, password, artistName } = req.body;
+  console.log('artistName: ', artistName);
+  try {
+    const user = await createUser({
+      email,
+      artistName,
+      password,
+    });
+
+    console.log(`  --- user registered : ${artistName}  ---  `);
+    // this needs to call the auth service and generate tokens for the new user here
+    return res.status(200).json({ message: 'user registered succesfully', user });
+  } catch (err: any) {
+    if (err.code === '23505') {
+      return res.status(403).json({ message: 'A user with this email or username already exists.' });
+    }
+    console.error(err);
+    return res.status(500).json({ message: 'Failed to create the user', err });
+  }
+};
 // TODO: make a zod schema for this request body
 export const updateUserHandler = async (req: Request, res: Response) => {
   const user = req.user;
   const token = req.token;
   if (!user) {
     console.log('Middleware failed to attach user to request ');
-    return res.status(400).json({ message: 'Middleware failed to attach user to request ' });
+    return res.status(400).json({ message: 'Middleware failed to attach user to request' });
   }
 
   const { artistName, bio, linkedSocials } = req.body;
@@ -113,12 +113,12 @@ export const uploadAvatarHandler = async (req: Request, res: Response) => {
   const user = req.user;
   if (!user) {
     console.log('Middleware failed to attach user to request ');
-    return res.status(400).json({ message: 'Middleware failed to attach user to request ' });
+    return res.status(400).json({ message: 'Middleware failed to attach user to request' });
   }
 
   const newAvatar = req.file;
   if (!newAvatar) {
-    return res.status(400).json({ message: 'no file detecting while updating avatar' });
+    return res.status(400).json({ message: 'no file detected while updating avatar' });
   }
 
   try {
@@ -130,7 +130,7 @@ export const uploadAvatarHandler = async (req: Request, res: Response) => {
     const avatarKey = uploadAvatarRes.Key;
     const updateUserRes = updateUserById(user.id, { avatar: avatarKey });
     console.log(updateUserRes);
-    return res.status(200).json({ message: 'avatar update successfully' });
+    return res.status(200).json({ message: 'avatar updated successfully' });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: 'an error occured while uploading your new avatar to storage' });
@@ -170,7 +170,7 @@ export const subCreditsHandler = async (req: Request, res: Response) => {
 export const getCreditsBalanceHandler = async (req: Request, res: Response) => {
   const userId = req.user?.id;
   if (!userId) {
-    return res.status(400).json({ message: 'No userId detected in request query string' });
+    return res.status(400).json({ message: 'Middelware failed to attach user to request / there is no ID' });
   }
   const creditBalance = await getCreditsBalance(userId as string);
   return res.status(200).json({ creditBalance });

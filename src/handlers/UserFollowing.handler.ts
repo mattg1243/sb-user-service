@@ -78,13 +78,14 @@ export const getFollowingHandler = async (req: Request, res: Response) => {
 
 export const isFollowingHandler = async (req: Request, res: Response) => {
   const { user, userToCheck } = req.query;
-  console.log('is following route hit ');
-  console.log(user, userToCheck);
+  if (!user || !userToCheck) {
+    return res.status(400).json({ message: "Missing one or more required qeury parameters."})
+  }
   try {
     const following = await isFollowing(user as string, userToCheck as string);
     return res.status(200).json({ isFollowing: following });
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ message: 'An error occured' });
+    return res.status(500).json({ message: 'An error has occured' });
   }
 };
