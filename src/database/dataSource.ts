@@ -19,3 +19,7 @@ export const AppDataSource = new DataSource({
   migrations: [],
   ssl: true,
 });
+
+export const initDBConnection = async () => {
+  await AppDataSource.initialize();
+};
