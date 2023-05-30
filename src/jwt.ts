@@ -1,4 +1,4 @@
-import jwt from 'jsonwebtoken';
+import jwt, { SignOptions } from 'jsonwebtoken';
 
 interface IDecodedToken {
   user: {
@@ -29,4 +29,22 @@ export const verifyJwt = (token: string): IDecodedToken | null => {
     console.log(error);
     return null;
   }
+};
+
+// sign tokens
+// USED FOR TESTING ONLY
+export const signJwt = (
+  payload: Object,
+  keyName: 'ACCESS_PRIVATE_KEY' | 'REFRESH_PRIVATE_KEY',
+  options: SignOptions
+) => {
+  // this needs optimization
+  let key = keyName === 'ACCESS_PRIVATE_KEY' ? process.env.ACCESS_PRIVATE_KEY : process.env.REFRESH_PRIVATE_KEY;
+  if (!key) key = '';
+
+  const privateKey = Buffer.from(key, 'base64').toString('ascii');
+  return jwt.sign(payload, privateKey, {
+    ...(options && options),
+    algorithm: 'HS256',
+  });
 };
