@@ -5,14 +5,14 @@
   "main": "./dist/app.js",
   "scripts": {
     "build": "tsc",
-    "prodstart": "node ./dist/app.js",
-    "devstart": "nodemon ./src/app.ts",
+    "prodstart": "node ./dist/server.js",
+    "devstart": "nodemon ./src/server.ts",
     "protogen": "cd proto && buf generate",
     "genscript": "bash compile-proto.sh",
     "dockerstart": "docker run --rm -it --env-file ./.env -p 8080:8080/tcp sb-user:latest",
     "migrate": "rm -rf dist && npm run build && typeorm-ts-node-commonjs migration:generate ./src/migrations/addedEntity -d ./src/database/dataSource.ts",
     "db:push": "rm -rf dist && npm run build && typeorm-ts-node-commonjs migration:run -d ./src/database/dataSource.ts",
-    "test": "jest",
+    "test": "jest -o --silent --forceExit --detectOpenHandles",
     "watch": "jest --watch"
   },
   "author": "",
