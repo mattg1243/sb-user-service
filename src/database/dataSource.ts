@@ -23,3 +23,7 @@ export const AppDataSource = new DataSource({
 export const initDBConnection = async () => {
   await AppDataSource.initialize();
 };
+
+export const closeConnection = async () => {
+  await AppDataSource.destroy();
+};
