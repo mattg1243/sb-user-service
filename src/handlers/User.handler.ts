@@ -1,9 +1,13 @@
-import { NextFunction, Request, Response } from 'express';
+import { NextFunction, Request, Response, json } from 'express';
 import {
   addCredits,
   createUser,
+  createVerifyEmailCode,
+  deleteVerifyEmailCode,
   findUserByEmail,
   findUserById,
+  findVerifyEmailCode,
+  findVerifyEmailCodeByUser,
   getCreditsBalance,
   subCredits,
   updateUserById,
@@ -13,6 +17,7 @@ import { sendUnaryData, ServerUnaryCall } from '@grpc/grpc-js';
 import { GetUserForLoginRequest, GetUserForLoginResponse } from '../proto/user_pb';
 import axios from 'axios';
 import { uploadFileToS3 } from '../bucket/upload';
+import { sendVerificationEmail } from '../utils/sendgridConfig';
 
 const BEATS_HOST = process.env.BEATS_HOST || 'http://localhost:8082';
 
@@ -54,6 +59,10 @@ export const getAvatarHandler = async (req: Request, res: Response) => {
 
 export const registerUserHandler = async (req: Request<{}, {}, CreateUserInput>, res: Response, next: NextFunction) => {
   const { email, password, artistName } = req.body;
+  const emailRe = /^[a-zA-Z0-9+_.-]+@[a-zA-Z0-9.-]+$/;
+  if (!emailRe.test(email)) {
+    return res.status(400).json({ message: 'Invalid email address provided.' });
+  }
   console.log('artistName: ', artistName);
   try {
     const user = await createUser({
@@ -61,7 +70,12 @@ export const registerUserHandler = async (req: Request<{}, {}, CreateUserInput>,
       artistName,
       password,
     });
-
+    // create a verification code and save it to the table
+    const verificationCode = await createVerifyEmailCode(user._id);
+    // send the email
+    const emailSendInfo = await sendVerificationEmail(verificationCode.hash, user.email, user._id);
+    console.log(emailSendInfo);
+    // redirect user to to verify page
     console.log(`  --- user registered : ${artistName}  ---  `);
     // this needs to call the auth service and generate tokens for the new user here
     return res.status(200).json({ message: 'user registered succesfully', user });
@@ -71,6 +85,55 @@ export const registerUserHandler = async (req: Request<{}, {}, CreateUserInput>,
     }
     console.error(err);
     return res.status(500).json({ message: 'Failed to create the user', err });
+  }
+};
+
+export const verifyEmailHandler = async (req: Request, res: Response) => {
+  const user = req.query.user;
+  const code = req.query.code;
+  // query db to see if the secret code exists
+  if (!user) {
+    return res.status(500).json({ message: 'No user found' });
+  }
+  try {
+    const verifyEmail = await findVerifyEmailCode(code as string);
+    if (verifyEmail?.userId == (user as string)) {
+      const userFromDB = await findUserById(user as string);
+      if (!userFromDB) {
+        return res.status(500).json({ message: 'No user found ' });
+      } else {
+        userFromDB.verified = true;
+        await deleteVerifyEmailCode(verifyEmail._id);
+        await userFromDB.save();
+        return res.status(200).json({ message: 'User verified succesfully' });
+      }
+    }
+  } catch (err) {
+    return res.status(503).json({ message: 'An error occured ' });
+  }
+};
+
+export const resendVerificationEmailHandler = async (req: Request, res: Response) => {
+  const user = req.query.user;
+
+  if (!user) {
+    return res.status(500).json({ message: 'No user found' });
+  }
+  try {
+    let verifyEmail = await findVerifyEmailCodeByUser(user as string);
+    if (!verifyEmail) {
+      verifyEmail = await createVerifyEmailCode(user as string);
+    }
+    const userEntitiy = await findUserById(user as string);
+    if (!userEntitiy) {
+      return res.status(500).json({ message: 'No user found in the database' });
+    }
+    const sendEmailRes = await sendVerificationEmail(verifyEmail.hash, userEntitiy.email, user as string);
+    console.log(sendEmailRes);
+    return res.status(200).json({ message: 'Verification email resent' });
+  } catch (err: any) {
+    console.error(err.response.body);
+    return res.status(503).json({ message: 'An error occured ' });
   }
 };
 // TODO: make a zod schema for this request body
@@ -190,7 +253,9 @@ export const getUserForLoginHTTP = async (req: Request, res: Response) => {
       email: user.email,
       artistName: user.artistName,
       password: user.password,
+      isVerified: user.verified,
     };
+    console.log(userResponse);
     return res.status(200).json(userResponse);
   } catch (err) {
     console.error(err);
