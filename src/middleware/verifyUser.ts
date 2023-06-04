@@ -14,6 +14,8 @@ export const verifyUser = (req: Request, res: Response, next: NextFunction) => {
   const decodedToken = verifyJwt(token);
   if (!decodedToken) {
     return res.status(401).json({ message: 'Invalid/missing user credentials provided with request' });
+  } else if (decodedToken.user.isVerified == false) {
+    return res.status(401).json({ message: 'User is unverified' });
   } else {
     req.user = decodedToken.user;
     req.token = token;
