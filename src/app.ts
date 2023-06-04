@@ -12,7 +12,7 @@ import indexRouter from './routes';
 
 dotenv.config();
 
-const CLIENT_HOST = process.env.CLIENT_HOST || 'http://localhost:3000';
+export const CLIENT_HOST = process.env.CLIENT_HOST || 'http://localhost:3000';
 // create Express app
 const app = express();
 // middleware
