@@ -10,6 +10,6 @@ RUN npm install
 RUN npm run build
 
 EXPOSE 8080
-CMD ["node", "dist/src/server.js"]
+CMD ["npm", "run", "prodstart"]
 
 # need to implement 2 stage Docker build eventually
