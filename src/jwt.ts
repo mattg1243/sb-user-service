@@ -5,6 +5,7 @@ interface IDecodedToken {
     id: string;
     email: string;
     artistName: string;
+    isVerified: boolean;
   };
   iat: number;
   exp: number;
