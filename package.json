@@ -5,7 +5,7 @@
   "main": "./dist/app.js",
   "scripts": {
     "build": "tsc",
-    "prodstart": "node ./dist/src/server.js",
+    "prodstart": "node ./dist/server.js",
     "devstart": "nodemon ./src/server.ts",
     "protogen": "cd proto && buf generate",
     "genscript": "bash compile-proto.sh",
