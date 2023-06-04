@@ -2,6 +2,7 @@ import { DataSource } from 'typeorm';
 import User from './models/User.entity';
 import dotenv from 'dotenv';
 import UsersFollowing from './models/UsersFollowing.entity';
+import EmailVerify from './models/EmailVerify.entity';
 
 dotenv.config();
 
@@ -14,7 +15,7 @@ export const AppDataSource = new DataSource({
   database: 'sweatshop_calabasas',
   synchronize: true,
   logging: false,
-  entities: [User, UsersFollowing],
+  entities: [User, UsersFollowing, EmailVerify],
   subscribers: [],
   migrations: [],
   ssl: true,

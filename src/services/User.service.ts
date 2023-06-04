@@ -1,4 +1,5 @@
 import User from '../database/models/User.entity';
+import EmailVerify from '../database/models/EmailVerify.entity';
 import { CreateUserInput } from '../database/schemas/User.schema';
 import { AppDataSource } from '../database/dataSource';
 
@@ -6,15 +7,32 @@ import { AppDataSource } from '../database/dataSource';
 
 // load user repository
 const userRepository = AppDataSource.getRepository(User);
+const emailVerifyRepository = AppDataSource.getRepository(EmailVerify);
 
 export const createUser = async (input: CreateUserInput) => {
   return (await AppDataSource.manager.save(AppDataSource.manager.create(User, input))) as User;
+};
+
+export const createVerifyEmailCode = async (userId: string) => {
+  return await AppDataSource.manager.save(AppDataSource.manager.create(EmailVerify, { userId }));
+};
+
+export const findVerifyEmailCode = async (code: string) => {
+  return await emailVerifyRepository.findOne({ where: { hash: code }, select: { userId: true } });
+};
+
+export const findVerifyEmailCodeByUser = async (userId: string) => {
+  return await emailVerifyRepository.findOne({ where: { userId } });
+};
+
+export const deleteVerifyEmailCode = async (id: string) => {
+  return await emailVerifyRepository.delete({ _id: id });
 };
 // NOTE: this does return the password has while selecting by ID does NOT
 export const findUserByEmail = async (email: string, select?: {}) => {
   return await userRepository.findOne({
     where: { email: email },
-    select: { _id: true, email: true, artistName: true, password: true },
+    select: { _id: true, email: true, artistName: true, password: true, verified: true },
   });
 };
 
