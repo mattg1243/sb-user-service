@@ -12,7 +12,7 @@ import {
   subCredits,
   updateUserById,
 } from '../services/User.service';
-import { CreateUserInput } from '../database/schemas/User.schema';
+import { CreateUserInput, UpdateUserInput } from '../database/schemas/User.schema';
 import { sendUnaryData, ServerUnaryCall } from '@grpc/grpc-js';
 import { GetUserForLoginRequest, GetUserForLoginResponse } from '../proto/user_pb';
 import axios from 'axios';
@@ -137,14 +137,14 @@ export const resendVerificationEmailHandler = async (req: Request, res: Response
   }
 };
 // TODO: make a zod schema for this request body
-export const updateUserHandler = async (req: Request, res: Response) => {
+export const updateUserHandler = async (req: Request<{}, {}, UpdateUserInput>, res: Response) => {
   const user = req.user;
   const token = req.token;
   if (!user) {
     console.log('Middleware failed to attach user to request ');
     return res.status(400).json({ message: 'Middleware failed to attach user to request' });
   }
-
+  
   const { artistName, bio, linkedSocials } = req.body;
   try {
     const updatedUser = await updateUserById(user.id, { artistName, bio, linkedSocials });
