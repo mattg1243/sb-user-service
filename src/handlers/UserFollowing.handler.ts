@@ -6,10 +6,11 @@ import {
   getFollowing,
   isFollowing,
 } from '../services/UsersFollowing.service';
+import { FollowUserInput, UnfollowUserInput } from '../database/schemas/User.schema';
 
 // TODO: implement CustomErr class for all thrown errors
 
-export const followUserHandler = async (req: Request, res: Response) => {
+export const followUserHandler = async (req: Request<{}, {}, FollowUserInput>, res: Response) => {
   console.log('follow route hit');
   const user = req.user;
   const { userToFollow } = req.body;
@@ -28,7 +29,7 @@ export const followUserHandler = async (req: Request, res: Response) => {
   }
 };
 
-export const unfollowUserHandler = async (req: Request, res: Response) => {
+export const unfollowUserHandler = async (req: Request<{}, {}, UnfollowUserInput>, res: Response) => {
   console.log('unfollow user route hit');
   const user = req.user;
   const { userToUnfollow } = req.body;
@@ -79,7 +80,7 @@ export const getFollowingHandler = async (req: Request, res: Response) => {
 export const isFollowingHandler = async (req: Request, res: Response) => {
   const { user, userToCheck } = req.query;
   if (!user || !userToCheck) {
-    return res.status(400).json({ message: "Missing one or more required qeury parameters."})
+    return res.status(400).json({ message: 'Missing one or more required qeury parameters.' });
   }
   try {
     const following = await isFollowing(user as string, userToCheck as string);
