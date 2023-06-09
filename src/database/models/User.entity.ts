@@ -1,4 +1,5 @@
 import { Entity, Column, BeforeInsert } from 'typeorm';
+import { Length } from 'class-validator';
 import Model from './Model.entity';
 import * as bcrypt from 'bcrypt';
 
@@ -6,21 +7,25 @@ import * as bcrypt from 'bcrypt';
 export default class User extends Model {
   // @Index('emailIndex')
   @Column({ unique: true })
+  @Length(6, 320)
   email: string;
 
   @Column({ unique: true })
+  @Length(6, 32)
   artistName: string;
 
   @Column({ select: false })
+  @Length(10, 64)
   password: string;
 
   @Column({ nullable: true })
+  @Length(0, 140)
   bio: string;
   // all images will be stored in the s3 bucket
   @Column({ nullable: true })
   avatar: string;
 
-  @Column({ type: 'jsonb', array: false, default: {}})
+  @Column({ type: 'jsonb', array: false, default: {} })
   linkedSocials: {
     youtube: string;
     spotify: string;
@@ -31,9 +36,11 @@ export default class User extends Model {
   };
 
   @Column({ nullable: true })
+  @Length(0, 32)
   fname: string;
 
   @Column({ nullable: true })
+  @Length(0, 32)
   lname: string;
   // these credit columns will reset every month
   @Column({ default: 0 })
