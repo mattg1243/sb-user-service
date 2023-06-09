@@ -5,7 +5,7 @@ interface IDecodedToken {
     id: string;
     email: string;
     artistName: string;
-    isVerified: boolean;
+    isVerified?: boolean;
   };
   iat: number;
   exp: number;
@@ -18,7 +18,7 @@ export const verifyJwt = (token: string): IDecodedToken | null => {
     return null;
   }
   // this needs optimization
-  let key = process.env.ACCESS_SECRET;
+  let key = process.env.ACCESS_PRIVATE_KEY;
   // console.log('jwt key: \n', key);
   if (!key) key = '';
   try {
