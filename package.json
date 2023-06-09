@@ -37,7 +37,7 @@
     "nodemailer": "^6.9.3",
     "pg": "^8.8.0",
     "ts-proto": "^1.133.0",
-    "typeorm": "^0.3.10",
+    "typeorm": "^0.3.16",
     "zod": "^3.19.1"
   },
   "devDependencies": {
