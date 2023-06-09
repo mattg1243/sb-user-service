@@ -3,11 +3,10 @@ import { app } from '../src/app';
 import { closeConnection as closeDBConnection, initDBConnection } from '../src/database/dataSource';
 import { signJwt } from '../src/jwt';
 import dotenv from 'dotenv';
-
 dotenv.config();
 
 const TEST_USER = { id: 'aafea35c-fa74-46eb-99da-561f1661dca5', email: 'sbtester@gmail.com', artistName: 'SantaBihh' };
-const TEST_TOKEN = signJwt(TEST_USER, 'ACCESS_PRIVATE_KEY', { expiresIn: '3600s' });
+const TEST_TOKEN = signJwt({ user: TEST_USER }, 'ACCESS_PRIVATE_KEY', { expiresIn: '3600s' });
 
 describe('User handlers', () => {
   beforeAll(async () => {
@@ -82,15 +81,15 @@ describe('User handlers', () => {
       });
   });
   // TODO: fix the token issue that occurs when running this test
-  // test('POST /update', (done) => {
-  //   request(app)
-  //     .post('/update')
-  //     .set('Authorization', TEST_TOKEN)
-  //     .send({ artistName: 'Himothy', bio: 'Im Him' })
-  //     .then((res) => {
-  //       expect(res.status).toBe(200);
-  //       console.log(res.body);
-  //       done();
-  //     });
-  // });
+  test('POST /update', (done) => {
+    request(app)
+      .post('/update')
+      .send({ artistName: TEST_USER.artistName, bio: 'Im Him', linkedSocials: {} })
+      .set('Authorization', TEST_TOKEN)
+      .then((res) => {
+        console.log(res);
+        expect(res.status).toBe(200);
+        done();
+      });
+  });
 });
