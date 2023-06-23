@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response, json } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import {
   addCredits,
   createUser,
@@ -33,7 +33,10 @@ export const getUserHandler = async (req: Request, res: Response) => {
   } else {
     try {
       const user = await findUserById(userId);
-      res.status(200).json(user?.toJSON());
+      if (!user) {
+        return res.status(404).json({ message: 'No user with this ID found' });
+      }
+      res.status(200).json(user.toJSON());
     } catch (err) {
       console.error(err);
       res.status(503).json({ message: 'error getting user:\n', err });
@@ -105,7 +108,7 @@ export const verifyEmailHandler = async (req: Request, res: Response) => {
         userFromDB.verified = true;
         await deleteVerifyEmailCode(verifyEmail._id);
         await userFromDB.save();
-        return res.status(200).json({ message: 'User verified succesfully' });
+        return res.status(200).json({ verified: true });
       }
     }
   } catch (err) {
@@ -144,7 +147,7 @@ export const updateUserHandler = async (req: Request<{}, {}, UpdateUserInput>, r
     console.log('Middleware failed to attach user to request ');
     return res.status(400).json({ message: 'Middleware failed to attach user to request' });
   }
-  
+
   const { artistName, bio, linkedSocials } = req.body;
   try {
     const updatedUser = await updateUserById(user.id, { artistName, bio, linkedSocials });

@@ -14,7 +14,7 @@ export const sendVerificationEmail = async (verificationCode: string, userEmail:
     to: userEmail,
     from: 'mattgallucci@orangemusicent.com',
     subject: 'Verify your Sweatshop Beats Account',
-    html: `<p>Visit ${CLIENT_HOST}/verify-email?code=${verificationCode}&user=${userId} to verify your account<p>`,
+    html: `<p>Visit ${CLIENT_HOST}/verify-email?code=${verificationCode}&user=${userId}&email=${userEmail} to verify your account<p>`,
   };
   return await sgMail.send(verifyEmail);
 };
