@@ -6,7 +6,7 @@ import EmailVerify from './models/EmailVerify.entity';
 
 dotenv.config();
 
-const dev = process.env.NODE_EN !== 'production';
+const dev = process.env.NODE_ENV !== 'production';
 
 const DB_URL = process.env.DB_URL;
 const DB_USERNAME = process.env.DB_USERNAME;
