@@ -6,19 +6,27 @@ import EmailVerify from './models/EmailVerify.entity';
 
 dotenv.config();
 
+const dev = process.env.NODE_EN !== 'production';
+
+const DB_URL = process.env.DB_URL;
+const DB_USERNAME = process.env.DB_USERNAME;
+const DB_PASSWORD = process.env.DB_PASSWORD;
+const DB_NAME = process.env.DB_NAME;
+
 export const AppDataSource = new DataSource({
   type: 'postgres',
-  url: process.env.DB_URL,
+  url: dev ? undefined : DB_URL,
+  host: dev ? 'localhost' : undefined,
   port: 5432,
-  username: process.env.DB_USERNAME,
-  password: process.env.DB_PASSWORD,
-  database: 'sweatshop_calabasas',
+  username: DB_USERNAME,
+  password: DB_PASSWORD,
+  database: DB_NAME,
   synchronize: true,
   logging: false,
   entities: [User, UsersFollowing, EmailVerify],
   subscribers: [],
   migrations: [],
-  ssl: true,
+  ssl: dev ? false : true,
 });
 
 export const initDBConnection = async () => {
