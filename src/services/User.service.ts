@@ -48,6 +48,21 @@ export const updateUserById = async (userId: string, updatedFields: {}) => {
   return await userRepository.update({ _id: userId }, updatedFields);
 };
 
+export const findUserPasswordResetToken = async (userEmail: string) => {
+  const user = userRepository
+    .createQueryBuilder('user')
+    .where('user.email = :userEmail', { userEmail: userEmail })
+    .addSelect('user.password')
+    .addSelect('user.passwordResetToken')
+    .addSelect('user.passwordResetTokenExp')
+    .getOne();
+  return user;
+};
+
+export const changeUserPassword = async (email: string, newPasswordHash: string) => {
+  return await userRepository.update({ email: email }, { password: newPasswordHash });
+};
+
 export const addCredits = async (userId: string, creditsToAdd: number) => {
   const user = await findUserById(userId);
   if (!user) {

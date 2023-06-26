@@ -1,11 +1,13 @@
 import { NextFunction, Request, Response } from 'express';
 import {
   addCredits,
+  changeUserPassword,
   createUser,
   createVerifyEmailCode,
   deleteVerifyEmailCode,
   findUserByEmail,
   findUserById,
+  findUserPasswordResetToken,
   findVerifyEmailCode,
   findVerifyEmailCodeByUser,
   getCreditsBalance,
@@ -17,7 +19,8 @@ import { sendUnaryData, ServerUnaryCall } from '@grpc/grpc-js';
 import { GetUserForLoginRequest, GetUserForLoginResponse } from '../proto/user_pb';
 import axios from 'axios';
 import { uploadFileToS3 } from '../bucket/upload';
-import { sendVerificationEmail } from '../utils/sendgridConfig';
+import { sendResetPasswordEmail, sendVerificationEmail } from '../utils/sendgridConfig';
+import User from '../database/models/User.entity';
 
 const BEATS_HOST = process.env.BEATS_HOST || 'http://localhost:8082';
 
@@ -139,6 +142,60 @@ export const resendVerificationEmailHandler = async (req: Request, res: Response
     return res.status(503).json({ message: 'An error occured ' });
   }
 };
+
+export const resetPasswordHandler = async (req: Request, res: Response) => {
+  const userEmail = req.query.email;
+  if (!userEmail) {
+    return res.status(400).json({ message: 'No userId provided with request' });
+  }
+  try {
+    const user = await findUserPasswordResetToken(userEmail as string);
+    if (!user) {
+      return res.status(404).json({ message: 'No user found with that email address' });
+    }
+    user.setPasswordResetToken();
+    const { token: resetToken, exp } = user.getPasswordResetToken();
+    console.log('token made:\n', resetToken);
+    await user.save();
+    const sendEmailRes = await sendResetPasswordEmail(resetToken, user.email);
+    console.log(sendEmailRes);
+    return res.status(200).send();
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: 'an err occured', err });
+  }
+};
+
+export const changePasswordHandler = async (req: Request, res: Response) => {
+  const userEmail = req.query.email;
+  const resetToken = req.query.token;
+  const newPassword = req.body.password;
+  if (!userEmail || !resetToken || !newPassword) {
+    return res.status(400).json({ message: 'Missing required query param' });
+  }
+
+  const user = await findUserPasswordResetToken(userEmail as string);
+  console.log(user);
+  if (!user) {
+    return res.status(404).json({ message: 'no user found with that email' });
+  }
+  const { token, exp } = user.getPasswordResetToken();
+  console.log('resetToken form req:\n', resetToken, '\nfrom db:\n', token);
+
+  // check if expiry has past
+  if (exp < new Date()) {
+    return res.status(400).json({ message: 'Your reset token has expired, please reset password again' });
+  }
+  // chack if tokens match
+  if ((resetToken as string) == token) {
+    const newPasswordHash = await User.hashPassword(newPassword);
+    await changeUserPassword(userEmail as string, newPasswordHash);
+    return res.status(200).json({ message: 'password reset successfully ' });
+  } else {
+    return res.status(401).json({ message: 'The provided token doesnt match the database records' });
+  }
+};
+
 // TODO: make a zod schema for this request body
 export const updateUserHandler = async (req: Request<{}, {}, UpdateUserInput>, res: Response) => {
   const user = req.user;
@@ -258,7 +315,6 @@ export const getUserForLoginHTTP = async (req: Request, res: Response) => {
       password: user.password,
       isVerified: user.verified,
     };
-    console.log(userResponse);
     return res.status(200).json(userResponse);
   } catch (err) {
     console.error(err);

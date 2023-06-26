@@ -1,6 +1,7 @@
 import { Entity, Column, BeforeInsert } from 'typeorm';
 import { Length } from 'class-validator';
 import Model from './Model.entity';
+import { randomBytes } from 'crypto';
 import * as bcrypt from 'bcrypt';
 
 @Entity('users')
@@ -61,10 +62,36 @@ export default class User extends Model {
   @Column({ default: false })
   verified: boolean;
 
+  @Column({ nullable: true, select: false })
+  passwordResetToken: string;
+
+  @Column({ type: 'timestamp', nullable: true, select: false })
+  passwordResetTokenExp: Date;
+
   toJSON() {
     return { ...this, password: undefined };
   }
-  // password hasing
+
+  getPasswordResetToken() {
+    return { token: this.passwordResetToken, exp: this.passwordResetTokenExp };
+  }
+
+  setPasswordResetToken() {
+    this.passwordResetToken = randomBytes(32).toString('hex');
+    const now = new Date();
+    this.passwordResetTokenExp = new Date(now.getTime() + 30 * 60000);
+    return this.passwordResetToken;
+  }
+
+  async setPassword(password: string) {
+    this.password = await bcrypt.hash(password, 12);
+  }
+
+  // password hashing
+  static async hashPassword(password: string) {
+    return await bcrypt.hash(password, 12);
+  }
+
   @BeforeInsert()
   async hashPassword() {
     this.password = await bcrypt.hash(this.password, 12);

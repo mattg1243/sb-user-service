@@ -3,8 +3,10 @@ import path from 'path';
 import multer from 'multer';
 import { verifyUser } from '../middleware/verifyUser';
 import {
+  changePasswordHandler,
   getCreditsBalanceHandler,
   resendVerificationEmailHandler,
+  resetPasswordHandler,
   subCreditsHandler,
   verifyEmailHandler,
 } from '../handlers/User.handler';
@@ -40,6 +42,8 @@ router.get('/following', getFollowingHandler);
 router.get('/isfollowing', isFollowingHandler);
 router.get('/verify-email', verifyEmailHandler);
 router.get('/resend-verification-email', resendVerificationEmailHandler);
+router.post('/reset-password', resetPasswordHandler);
+router.post('/change-password', changePasswordHandler);
 // PROTECTED
 router.post('/update', verifyUser, updateUserHandler);
 router.post('/avatar', verifyUser, upload.single('newAvatar'), uploadAvatarHandler);
