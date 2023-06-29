@@ -40,6 +40,10 @@ export const loginUserSchema = object({
   }),
 });
 
+// valid hostnames for social links
+export const validSocialLinkDomains = ['www.youtube.com', 'www.twitter.com', 'www.spotify.com', 'www.linktr.ee', 'www.instagram.com'];
+const socialLinkRegex =
+  /(https?:\/\/(.+?\.)?(youtube.com|twitter.com|spotify.com|linktr.ee|instagram.com)(\/[A-Za-z0-9\-\._~:\/\?#\[\]@!$&'\(\)\*\+,;\=]*)?)/;
 export const updateUserSchema = object({
   body: object({
     artistName: string()
@@ -48,14 +52,7 @@ export const updateUserSchema = object({
       .max(32, { message: 'Artist Name must be 32 characters or less' })
       .optional(),
     bio: string().trim().max(140, { message: 'Bio has a character limit of 128' }).optional(),
-    linkedSocials: object({
-      youtube: string().trim().max(1000).optional(),
-      spotify: string().trim().max(1000).optional(),
-      soundcloud: string().trim().max(1000).optional(),
-      appleMusic: string().trim().max(1000).optional(),
-      twitter: string().trim().max(25).optional(),
-      instagram: string().trim().max(1000).optional(),
-    }),
+    socialLink: string().trim().regex(socialLinkRegex, 'The provided social link is not valid.').max(200).optional(),
   }),
 });
 

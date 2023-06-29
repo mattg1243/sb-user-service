@@ -26,15 +26,8 @@ export default class User extends Model {
   @Column({ nullable: true })
   avatar: string;
 
-  @Column({ type: 'jsonb', array: false, default: {} })
-  linkedSocials: {
-    youtube: string;
-    spotify: string;
-    soundcloud: string;
-    appleMusic: string;
-    twitter: string;
-    instagram: string;
-  };
+  @Column({ nullable: true })
+  socialLink: string;
 
   @Column({ nullable: true })
   @Length(0, 32)
@@ -96,6 +89,12 @@ export default class User extends Model {
   async hashPassword() {
     this.password = await bcrypt.hash(this.password, 12);
   }
+
+  @BeforeInsert()
+  validateSocialLink() {
+    
+  }
+
   // validating password
   static async comparePasswords(candidatePassword: string, hashedPassword: string) {
     return await bcrypt.compare(candidatePassword, hashedPassword);
