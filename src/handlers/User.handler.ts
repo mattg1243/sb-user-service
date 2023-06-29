@@ -11,16 +11,18 @@ import {
   findVerifyEmailCode,
   findVerifyEmailCodeByUser,
   getCreditsBalance,
+  searchAllUsers,
   subCredits,
   updateUserById,
 } from '../services/User.service';
-import { CreateUserInput, UpdateUserInput } from '../database/schemas/User.schema';
+import { CreateUserInput, UpdateUserInput, validSocialLinkDomains } from '../database/schemas/User.schema';
 import { sendUnaryData, ServerUnaryCall } from '@grpc/grpc-js';
 import { GetUserForLoginRequest, GetUserForLoginResponse } from '../proto/user_pb';
 import axios from 'axios';
 import { uploadFileToS3 } from '../bucket/upload';
 import { sendResetPasswordEmail, sendVerificationEmail } from '../utils/sendgridConfig';
 import User from '../database/models/User.entity';
+import { makeValidUrl } from '../utils/stringMatchers';
 
 const BEATS_HOST = process.env.BEATS_HOST || 'http://localhost:8082';
 
@@ -44,6 +46,21 @@ export const getUserHandler = async (req: Request, res: Response) => {
       console.error(err);
       res.status(503).json({ message: 'error getting user:\n', err });
     }
+  }
+};
+
+export const searchUsersHandlers = async (req: Request, res: Response) => {
+  const query = req.query.search as string;
+  if (query) {
+    try {
+      const users = await searchAllUsers(query);
+      return res.status(200).json({ users });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: 'an error occured', err });
+    }
+  } else {
+    return res.status(400).json({ message: 'No search query provided' });
   }
 };
 
@@ -205,9 +222,26 @@ export const updateUserHandler = async (req: Request<{}, {}, UpdateUserInput>, r
     return res.status(400).json({ message: 'Middleware failed to attach user to request' });
   }
 
-  const { artistName, bio, linkedSocials } = req.body;
+  const { artistName, bio, socialLink } = req.body;
   try {
-    const updatedUser = await updateUserById(user.id, { artistName, bio, linkedSocials });
+    // validate the socialLink
+    let socialLinkValidUrl: URL | undefined;
+    if (socialLink) {
+      socialLinkValidUrl = makeValidUrl(socialLink);
+      console.log('social link domain:', socialLinkValidUrl.hostname);
+      if (!validSocialLinkDomains.includes(socialLinkValidUrl.host)) {
+        return res.status(400).json({ message: 'Invalid social link' });
+      }
+    } else {
+      socialLinkValidUrl = undefined;
+    }
+
+    const updatedUser = await updateUserById(user.id, {
+      artistName,
+      bio,
+      socialLink: socialLinkValidUrl ? socialLinkValidUrl.toString() : undefined,
+    });
+
     // check if artistName has been updated and if so, update their beats
     if (artistName !== user.artistName) {
       // this axios request will be made a gRPC remote function call

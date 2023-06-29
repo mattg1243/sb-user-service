@@ -44,6 +44,14 @@ export const findUser = async (query: Object) => {
   return await userRepository.findOneBy(query);
 };
 
+export const searchAllUsers = async (query: string) => {
+  const formattedQuery = query.trim().replace(/ /g, ' & ');
+  return await userRepository
+    .createQueryBuilder('user')
+    .where(`to_tsvector('simple', user.artistName) @@ to_tsquery('simple', :query)`, { query: `${formattedQuery}:*` })
+    .getMany();
+};
+
 export const updateUserById = async (userId: string, updatedFields: {}) => {
   return await userRepository.update({ _id: userId }, updatedFields);
 };

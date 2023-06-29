@@ -7,6 +7,7 @@ import {
   getCreditsBalanceHandler,
   resendVerificationEmailHandler,
   resetPasswordHandler,
+  searchUsersHandlers,
   subCreditsHandler,
   verifyEmailHandler,
 } from '../handlers/User.handler';
@@ -34,6 +35,7 @@ const upload = multer({
 });
 
 router.get('/', getUserHandler);
+router.get('/search', searchUsersHandlers);
 router.get('/avatar', getAvatarHandler);
 router.post('/login', getUserForLoginHTTP);
 router.post('/register', registerUserHandler);
