@@ -1,9 +1,11 @@
-import Router from 'express';
+import * as express from 'express';
 import path from 'path';
 import multer from 'multer';
 import { verifyUser } from '../middleware/verifyUser';
 import {
   changePasswordHandler,
+  createStripePortalSessionHandler,
+  createSubscriptionHandler,
   getCreditsBalanceHandler,
   resendVerificationEmailHandler,
   resetPasswordHandler,
@@ -27,8 +29,9 @@ import {
   uploadAvatarHandler,
   addCreditsHandler,
 } from '../handlers/User.handler';
+import { stripeCustomerPortalHandler } from '../handlers/Stripe.handler';
 
-const router = Router();
+const router = express.Router();
 
 const upload = multer({
   dest: path.join(__dirname, '../uploads'),
@@ -44,8 +47,11 @@ router.get('/following', getFollowingHandler);
 router.get('/isfollowing', isFollowingHandler);
 router.get('/verify-email', verifyEmailHandler);
 router.get('/resend-verification-email', resendVerificationEmailHandler);
+router.get('/stripe-portal', createStripePortalSessionHandler);
 router.post('/reset-password', resetPasswordHandler);
 router.post('/change-password', changePasswordHandler);
+router.post('/create-subscription', createSubscriptionHandler);
+router.get('/customer-portal', stripeCustomerPortalHandler);
 // PROTECTED
 router.post('/update', verifyUser, updateUserHandler);
 router.post('/avatar', verifyUser, upload.single('newAvatar'), uploadAvatarHandler);
