@@ -393,15 +393,20 @@ export const getUserForLoginHTTP = async (req: Request, res: Response) => {
       return res.status(401).json({ message: 'No user found with that email address' });
     }
     // check if user has stripe customer id
+    let customerId: string;
     if (!user.stripeCustomerId) {
       const stripeCustomer = await stripeClient.createCustomer(email);
-      user.stripeCustomerId = stripeCustomer.id;
+      user.setCustomerId(stripeCustomer.id);
+      await user.save();
+      customerId = stripeCustomer.id;
+    } else {
+      customerId = user.stripeCustomerId;
     }
     const userResponse = {
       id: user._id,
       email: user.email,
       artistName: user.artistName,
-      stripeCustomerId: user.stripeCustomerId,
+      stripeCustomerId: customerId,
       password: user.password,
       isVerified: user.verified,
     };

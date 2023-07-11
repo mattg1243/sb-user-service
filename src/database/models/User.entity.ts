@@ -106,6 +106,10 @@ export default class User extends Model {
     this.stripeSubStatus = status;
   }
 
+  setCustomerId(customerId: string) {
+    this.stripeCustomerId = customerId;
+  }
+
   @BeforeInsert()
   async hashPassword() {
     this.password = await bcrypt.hash(this.password, 12);
