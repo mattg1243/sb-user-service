@@ -23,8 +23,12 @@ import { uploadFileToS3 } from '../bucket/upload';
 import { sendResetPasswordEmail, sendVerificationEmail } from '../utils/sendgridConfig';
 import User from '../database/models/User.entity';
 import { makeValidUrl } from '../utils/stringMatchers';
+import StripeClient from '../utils/StripeClient';
+import Stripe from 'stripe';
 
 const BEATS_HOST = process.env.BEATS_HOST || 'http://localhost:8082';
+
+const stripeClient = new StripeClient();
 
 export const indexHandler = async (req: Request, res: Response, next: NextFunction) => {
   return res.status(200).json({ message: 'User service online!' });
@@ -88,10 +92,12 @@ export const registerUserHandler = async (req: Request<{}, {}, CreateUserInput>,
   }
   console.log('artistName: ', artistName);
   try {
+    const stripeCustomer = await stripeClient.createCustomer(email);
     const user = await createUser({
       email,
       artistName,
       password,
+      stripeCustomerId: stripeCustomer.id,
     });
     // create a verification code and save it to the table
     const verificationCode = await createVerifyEmailCode(user._id);
@@ -100,7 +106,10 @@ export const registerUserHandler = async (req: Request<{}, {}, CreateUserInput>,
     console.log(emailSendInfo);
     // redirect user to to verify page
     console.log(`  --- user registered : ${artistName}  ---  `);
+    // create Stripe customer
+
     // this needs to call the auth service and generate tokens for the new user here
+    res.cookie('sb-customer', stripeCustomer.id);
     return res.status(200).json({ message: 'user registered succesfully', user });
   } catch (err: any) {
     if (err.code === '23505') {
@@ -309,6 +318,47 @@ export const addCreditsHandler = async (req: Request, res: Response) => {
     return res.status(500).json({ message: err });
   }
 };
+// TODO move these into the stripe handler module
+export const createSubscriptionHandler = async (
+  req: Request<{}, {}, { subTier: 'basic' | 'std' | 'prem'; customerId: string }>,
+  res: Response
+) => {
+  const { subTier, customerId } = req.body;
+  let sessionUrl: string;
+  try {
+    // match to subTier
+    switch (subTier) {
+      case 'basic':
+        sessionUrl = (await stripeClient.createBasicTierCheckout()).url as string;
+        break;
+      case 'std':
+        sessionUrl = (await stripeClient.createStdTierCheckout()).url as string;
+        break;
+      case 'prem':
+        sessionUrl = (await stripeClient.createPremTierCheckout()).url as string;
+        break;
+      default:
+        console.error(`Invalid sub tier requested by customer ${customerId}`);
+        return res.status(500).json({ message: `Invalid sub tier requested by customer ${customerId}` });
+    }
+    // send checkoutSessionUrl to client
+    res.json({ checkoutUrl: sessionUrl });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: 'An error occurred creating your subscription', err });
+  }
+};
+
+export const createStripePortalSessionHandler = async (req: Request, res: Response) => {
+  const customerId = req.query.customerId as string;
+  try {
+    const session = await stripeClient.createPortalSession(customerId);
+    return res.status(200).json({ url: session.url });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: 'An error occured creating a Stripe portal session', err });
+  }
+};
 
 export const subCreditsHandler = async (req: Request, res: Response) => {
   const { userId, creditsToSub } = req.body;
@@ -346,6 +396,7 @@ export const getUserForLoginHTTP = async (req: Request, res: Response) => {
       id: user._id,
       email: user.email,
       artistName: user.artistName,
+      stripeCustomerId: user.stripeCustomerId,
       password: user.password,
       isVerified: user.verified,
     };
@@ -355,6 +406,7 @@ export const getUserForLoginHTTP = async (req: Request, res: Response) => {
     return res.status(500).json({ message: 'error finding user by email' });
   }
 };
+
 // TODO: create a directory dedicated to all gRPC mapped handler functions
 export const getUserForLogin = async (
   call: ServerUnaryCall<GetUserForLoginRequest, GetUserForLoginResponse>,
