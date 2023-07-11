@@ -52,14 +52,14 @@ export const stripeWebhookHandler = async (req: Request, res: Response) => {
       // handleSubscriptionTrialEnding(subscription);
       // break;
       case 'customer.deleted':
-        user = await getUserByStripCustomerId(customerIdTest);
+        user = await getUserByStripCustomerId(event.data.object.id);
         user.setSubStatus('canceled');
         user.save();
       case 'customer.subscription.deleted':
         subscription = event.data.object;
         status = (subscription as Stripe.Subscription).status;
         // get user by customer id
-        user = await getUserByStripCustomerId(customerIdTest);
+        user = await getUserByStripCustomerId(event.data.object.id);
         user.setSubStatus('canceled');
         user.save();
         console.log(`Subscription status is ${status}.`);
@@ -67,7 +67,7 @@ export const stripeWebhookHandler = async (req: Request, res: Response) => {
       case 'customer.subscription.created':
         subscription = event.data.object;
         status = subscription.status;
-        user = await getUserByStripCustomerId(customerIdTest);
+        user = await getUserByStripCustomerId(event.data.object.id);
         user.setSubStatus(status);
         console.log(subscription.items.data[0].price.id);
         // check to see what tier subscription in order to add correct amount of credits
@@ -102,7 +102,7 @@ export const stripeWebhookHandler = async (req: Request, res: Response) => {
       case 'customer.subscription.updated':
         subscription = event.data.object;
         status = subscription.status;
-        user = await getUserByStripCustomerId(customerIdTest);
+        user = await getUserByStripCustomerId(event.data.object.id);
         user.setSubStatus(status);
         console.log(`Subscription status is ${status}.`);
         // Then define and call a method to handle the subscription update.
@@ -116,7 +116,7 @@ export const stripeWebhookHandler = async (req: Request, res: Response) => {
       case 'invoice.finalized':
         // email the invoice to the user, if stripe doesnt do this already
         invoice = event.data.object;
-        user = await getUserByStripCustomerId(customerIdTest);
+        user = await getUserByStripCustomerId(event.data.object.customer as string);
         break;
 
       case 'invoice.finalization_failed':
