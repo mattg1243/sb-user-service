@@ -52,24 +52,38 @@ export const stripeWebhookHandler = async (req: Request, res: Response) => {
       // handleSubscriptionTrialEnding(subscription);
       // break;
       case 'customer.deleted':
-        user = await getUserByStripCustomerId(event.data.object.id);
-        user.setSubStatus('canceled');
-        user.save();
+        try {
+          user = await getUserByStripCustomerId(event.data.object.id);
+          user.setSubStatus('canceled');
+          user.save();
+        } catch (err) {
+          console.error(err);
+        }
+        break;
+        
       case 'customer.subscription.deleted':
-        subscription = event.data.object;
-        status = (subscription as Stripe.Subscription).status;
-        // get user by customer id
-        user = await getUserByStripCustomerId(event.data.object.id);
-        user.setSubStatus('canceled');
-        user.save();
-        console.log(`Subscription status is ${status}.`);
+        try {
+          subscription = event.data.object;
+          status = (subscription as Stripe.Subscription).status;
+          // get user by customer id
+          user = await getUserByStripCustomerId(event.data.object.id);
+          user.setSubStatus('canceled');
+          user.save();
+          console.log(`Subscription status is ${status}.`);
+        } catch (err) {
+          console.error(err);
+        }
         break;
       case 'customer.subscription.created':
-        subscription = event.data.object;
-        status = subscription.status;
-        user = await getUserByStripCustomerId(event.data.object.id);
-        user.setSubStatus(status);
-        console.log(subscription.items.data[0].price.id);
+        try {
+          subscription = event.data.object;
+          status = subscription.status;
+          user = await getUserByStripCustomerId(event.data.object.id);
+          user.setSubStatus(status);
+          console.log(subscription.items.data[0].price.id);
+        } catch (err) {
+          console.error(err);
+        }
         // check to see what tier subscription in order to add correct amount of credits
         const subPriceId = subscription.items.data[0].price.id;
         const products = stripeClient.getProducts();
@@ -100,11 +114,15 @@ export const stripeWebhookHandler = async (req: Request, res: Response) => {
         // handleSubscriptionCreated(subscription);
         break;
       case 'customer.subscription.updated':
-        subscription = event.data.object;
-        status = subscription.status;
-        user = await getUserByStripCustomerId(event.data.object.id);
-        user.setSubStatus(status);
-        console.log(`Subscription status is ${status}.`);
+        try {
+          subscription = event.data.object;
+          status = subscription.status;
+          user = await getUserByStripCustomerId(event.data.object.id);
+          user.setSubStatus(status);
+          console.log(`Subscription status is ${status}.`);
+        } catch (err) {
+          console.error(err);
+        }
         // Then define and call a method to handle the subscription update.
         // handleSubscriptionUpdated(subscription);
         break;
@@ -115,8 +133,12 @@ export const stripeWebhookHandler = async (req: Request, res: Response) => {
 
       case 'invoice.finalized':
         // email the invoice to the user, if stripe doesnt do this already
-        invoice = event.data.object;
-        user = await getUserByStripCustomerId(event.data.object.customer as string);
+        try {
+          invoice = event.data.object;
+          user = await getUserByStripCustomerId(event.data.object.customer as string);
+        } catch (err) {
+          console.error(err);
+        }
         break;
 
       case 'invoice.finalization_failed':
