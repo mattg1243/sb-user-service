@@ -49,8 +49,25 @@ export default class User extends Model {
   @Column({ array: true, default: [] })
   uploadedBeats: string;
 
-  @Column({ default: 0 })
-  subTier: 0 | 1 | 2 | 3;
+  @Column({ default: '' })
+  subTier: 'basic' | 'std' | 'prem';
+
+  @Column({ default: '' })
+  stripeCustomerId: string;
+
+  @Column({ default: '' })
+  stripeSubId: string;
+
+  @Column({ default: '' })
+  stripeSubStatus:
+    | 'trialing'
+    | 'active'
+    | 'incomplete'
+    | 'incomplete_expired'
+    | 'past_due'
+    | 'canceled'
+    | 'unpaid'
+    | 'paused';
   // email verified?
   @Column({ default: false })
   verified: boolean;
@@ -85,15 +102,17 @@ export default class User extends Model {
     return await bcrypt.hash(password, 12);
   }
 
+  setSubStatus(status: typeof this.stripeSubStatus) {
+    this.stripeSubStatus = status;
+  }
+
   @BeforeInsert()
   async hashPassword() {
     this.password = await bcrypt.hash(this.password, 12);
   }
 
   @BeforeInsert()
-  validateSocialLink() {
-    
-  }
+  validateSocialLink() {}
 
   // validating password
   static async comparePasswords(candidatePassword: string, hashedPassword: string) {
