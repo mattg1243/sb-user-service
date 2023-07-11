@@ -16,7 +16,8 @@ const stripeConfig: stripe.StripeConfig = {
 export default class StripeClient {
   readonly s: stripe;
   private readonly liveProducts = {
-    basicSub: 'price_1NQgQdDvAr9mohsEdoJeRzO4',
+    // THIS PRICE IS ONLY 1 DOLLAR, CHANGE BEFORE RELEASE
+    basicSub: 'price_1NSWZiDvAr9mohsEgcj9N5Yn',
     stdSub: 'price_1NQgaWDvAr9mohsEa5ZdB8O9',
     premSub: 'price_1NQgbfDvAr9mohsEVxScWxFs',
   };
