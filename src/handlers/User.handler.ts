@@ -392,6 +392,11 @@ export const getUserForLoginHTTP = async (req: Request, res: Response) => {
     if (!user) {
       return res.status(401).json({ message: 'No user found with that email address' });
     }
+    // check if user has stripe customer id
+    if (!user.stripeCustomerId) {
+      const stripeCustomer = await stripeClient.createCustomer(email);
+      user.stripeCustomerId = stripeCustomer.id;
+    }
     const userResponse = {
       id: user._id,
       email: user.email,
