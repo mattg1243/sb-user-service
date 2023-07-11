@@ -60,7 +60,7 @@ export const stripeWebhookHandler = async (req: Request, res: Response) => {
           console.error(err);
         }
         break;
-        
+
       case 'customer.subscription.deleted':
         try {
           subscription = event.data.object;
@@ -81,35 +81,36 @@ export const stripeWebhookHandler = async (req: Request, res: Response) => {
           user = await getUserByStripCustomerId(event.data.object.id);
           user.setSubStatus(status);
           console.log(subscription.items.data[0].price.id);
+          const subPriceId = subscription.items.data[0].price.id;
+          const products = stripeClient.getProducts();
+          switch (subPriceId) {
+            case products.basicSub:
+              console.log('basic sub created');
+              // grant 3 credits
+              // change subTier to 'basic'
+              break;
+
+            case products.stdSub:
+              console.log('std sub created');
+              // grant 7 credits
+              // change user.subTier to 'std'
+              // change user.stripeSubStatus
+              break;
+
+            case products.premSub:
+              console.log('prem sub created');
+
+            default:
+              console.error('No subscription matches the provided price_id');
+              break;
+          }
+          user.save();
+          console.log(`Subscription status is ${status}.`);
         } catch (err) {
           console.error(err);
         }
         // check to see what tier subscription in order to add correct amount of credits
-        const subPriceId = subscription.items.data[0].price.id;
-        const products = stripeClient.getProducts();
-        switch (subPriceId) {
-          case products.basicSub:
-            console.log('basic sub created');
-            // grant 3 credits
-            // change subTier to 'basic'
-            break;
 
-          case products.stdSub:
-            console.log('std sub created');
-            // grant 7 credits
-            // change user.subTier to 'std'
-            // change user.stripeSubStatus
-            break;
-
-          case products.premSub:
-            console.log('prem sub created');
-
-          default:
-            console.error('No subscription matches the provided price_id');
-            break;
-        }
-        user.save();
-        console.log(`Subscription status is ${status}.`);
         // Then define and call a method to handle the subscription created.
         // handleSubscriptionCreated(subscription);
         break;
