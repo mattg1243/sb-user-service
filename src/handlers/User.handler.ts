@@ -394,7 +394,8 @@ export const getUserForLoginHTTP = async (req: Request, res: Response) => {
     }
     // check if user has stripe customer id
     let customerId: string;
-    if (!user.stripeCustomerId) {
+    // this can be optimized
+    if (user.stripeCustomerId.length < 6) {
       const stripeCustomer = await stripeClient.createCustomer(email);
       user.setCustomerId(stripeCustomer.id);
       await user.save();
