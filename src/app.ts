@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import 'reflect-metadata';
+import { stripeWebhookHandler } from './handlers/Stripe.handler';
 // grpc modules
 import { Server, ServerCredentials } from '@grpc/grpc-js';
 import { UserService } from './proto/user_grpc_pb';
@@ -17,6 +18,8 @@ export const CLIENT_HOST = process.env.CLIENT_HOST || 'http://localhost:3000';
 const app = express();
 // middleware
 app.use(cors({ credentials: true, origin: CLIENT_HOST }));
+// webhook route before json middleware
+app.post('/stripe-webhook', express.raw({ type: '*/*' }), stripeWebhookHandler);
 app.use(express.json());
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 app.use(cookieParser());
