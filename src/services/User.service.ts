@@ -32,7 +32,7 @@ export const deleteVerifyEmailCode = async (id: string) => {
 export const findUserByEmail = async (email: string, select?: {}) => {
   return await userRepository.findOne({
     where: { email: email },
-    select: { _id: true, email: true, artistName: true, password: true, verified: true },
+    select: { _id: true, email: true, artistName: true, password: true, verified: true, stripeCustomerId: true },
   });
 };
 
@@ -105,4 +105,13 @@ export const getCreditsBalance = async (userId: string) => {
   }
   const creditsBalance = user.creditsToSpend;
   return Promise.resolve(creditsBalance);
+};
+
+export const getUserByStripCustomerId = async (customerId: string) => {
+  const user = await userRepository.findOne({ where: { stripeCustomerId: customerId } });
+  if (!user) {
+    return Promise.reject('No user found with this Stripe customer ID');
+  } else {
+    return user;
+  }
 };
