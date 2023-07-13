@@ -107,10 +107,19 @@ export const getCreditsBalance = async (userId: string) => {
   return Promise.resolve(creditsBalance);
 };
 
-export const getUserByStripCustomerId = async (customerId: string) => {
+export const getUserByStripeCustomerId = async (customerId: string, eventType?: string) => {
   const user = await userRepository.findOne({ where: { stripeCustomerId: customerId } });
   if (!user) {
-    return Promise.reject('No user found with this Stripe customer ID');
+    return Promise.reject('No user found with Stripe customer ID ' + customerId + 'for event type ' + eventType);
+  } else {
+    return user;
+  }
+};
+
+export const getUserByStripeConnectId = async (connectId: string) => {
+  const user = await userRepository.findOne({ where: { stripeConnectId: connectId } });
+  if (!user) {
+    return Promise.reject('No user found with Stripe Connect Id ' + connectId);
   } else {
     return user;
   }

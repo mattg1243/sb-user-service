@@ -56,6 +56,9 @@ export default class User extends Model {
   stripeCustomerId: string;
 
   @Column({ default: '' })
+  stripeConnectId: string;
+
+  @Column({ default: '' })
   stripeSubId: string;
 
   @Column({ default: '' })
