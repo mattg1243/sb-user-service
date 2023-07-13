@@ -329,13 +329,13 @@ export const createSubscriptionHandler = async (
     // match to subTier
     switch (subTier) {
       case 'basic':
-        sessionUrl = (await stripeClient.createBasicTierCheckout()).url as string;
+        sessionUrl = (await stripeClient.createBasicTierCheckout(customerId)).url as string;
         break;
       case 'std':
-        sessionUrl = (await stripeClient.createStdTierCheckout()).url as string;
+        sessionUrl = (await stripeClient.createStdTierCheckout(customerId)).url as string;
         break;
       case 'prem':
-        sessionUrl = (await stripeClient.createPremTierCheckout()).url as string;
+        sessionUrl = (await stripeClient.createPremTierCheckout(customerId)).url as string;
         break;
       default:
         console.error(`Invalid sub tier requested by customer ${customerId}`);

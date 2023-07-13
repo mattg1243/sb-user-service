@@ -29,7 +29,7 @@ import {
   uploadAvatarHandler,
   addCreditsHandler,
 } from '../handlers/User.handler';
-import { stripeCustomerPortalHandler } from '../handlers/Stripe.handler';
+import { createStripeConnectAcctHandler, stripeCustomerPortalHandler } from '../handlers/Stripe.handler';
 
 const router = express.Router();
 
@@ -59,6 +59,7 @@ router.post('/follow', verifyUser, followUserHandler);
 router.post('/unfollow', verifyUser, unfollowUserHandler);
 router.post('/add-credits', verifyUser, addCreditsHandler);
 router.post('/sub-credits', subCreditsHandler);
+router.post('/create-stripe-connect-acct', verifyUser, createStripeConnectAcctHandler);
 router.get('/credits-balance', verifyUser, getCreditsBalanceHandler);
 
 router.get(
