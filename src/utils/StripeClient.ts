@@ -8,30 +8,33 @@ const dev = process.env.NODE_ENV !== 'production';
 
 const apiKey = dev ? process.env.STRIPE_TEST_KEY : process.env.STRIPE_API_KEY;
 
+interface StripeProduct {
+  prices: Array<string>;
+  product: string;
+}
+
 const stripeConfig: stripe.StripeConfig = {
   apiVersion: '2022-11-15',
   typescript: true,
 };
 
+// this should be rewrtitten as a namespace, eventually
 export default class StripeClient {
   readonly s: stripe;
   private readonly liveProducts = {
     // THIS PRICE IS ONLY 1 DOLLAR, CHANGE BEFORE RELEASE
-    basicSub: 'price_1NSWZiDvAr9mohsEgcj9N5Yn',
-    stdSub: 'price_1NQgaWDvAr9mohsEa5ZdB8O9',
-    premSub: 'price_1NQgbfDvAr9mohsEVxScWxFs',
+    basicSub: { prices: ['price_1NSWZiDvAr9mohsEgcj9N5Yn'], product: 'prod_OD6dnPXf8qYZ2j' },
+    stdSub: { prices: ['price_1NQgaWDvAr9mohsEa5ZdB8O9'], product: 'prod_OD6oUoJy4Vkoq7' },
+    premSub: { prices: ['price_1NQgbfDvAr9mohsEVxScWxFs'], product: 'prod_ODUuxPkQNir3Z2' },
   };
-  private readonly testProducts = {
-    basicSub: 'price_1NRNMNDvAr9mohsEZ50muJeR',
-    stdSub: 'price_1NSSn9DvAr9mohsEFJM6Mn81',
-    premSub: 'price_1NSSnqDvAr9mohsEe4CeMWCu',
+  private readonly testPrices = {
+    basicSub: { prices: ['price_1NRNMNDvAr9mohsEZ50muJeR'], product: 'prod_ODp0PzbxUWTSvf' },
+    stdSub: { prices: ['price_1NSSn9DvAr9mohsEFJM6Mn81'], product: 'prod_OEwgdKCaGkjdWE' },
+    premSub: { prices: ['price_1NSSnqDvAr9mohsEe4CeMWCu'], product: 'prod_OEwgdKCaGkjdWE' },
   };
+  // this needs typing
+  private readonly products: any;
 
-  private readonly products = {
-    basicSub: '',
-    stdSub: '',
-    premSub: '',
-  };
   // TODO add a price catalog to this config so users can easily upgrade their sub tier from the portal
   private customerPortalConfig: stripe.Response<stripe.BillingPortal.Configuration>;
 
@@ -55,7 +58,7 @@ export default class StripeClient {
     //     },
     //   })
     //   .then((value) => (this.customerPortalConfig = value));
-    dev ? (this.products = this.testProducts) : (this.products = this.liveProducts);
+    dev ? (this.products = this.testPrices) : (this.products = this.liveProducts);
   }
 
   async createCustomer(email: string) {
@@ -76,11 +79,11 @@ export default class StripeClient {
     });
   }
 
-  private async createSubCheckoutSession(subTier: keyof typeof this.products) {
+  private async createSubCheckoutSession(subTier: keyof typeof this.products, customerId: string) {
     return await this.s.checkout.sessions.create({
       line_items: [
         {
-          price: this.products[subTier],
+          price: this.products[subTier].prices[0],
           quantity: 1,
         },
       ],
@@ -88,6 +91,7 @@ export default class StripeClient {
       success_url: `${CLIENT_HOST}/app/dash?sub-success=true`,
       cancel_url: `${CLIENT_HOST}/subscriptions?sub-failure=true`,
       payment_method_types: ['card'],
+      customer: customerId,
     });
   }
 
@@ -102,21 +106,21 @@ export default class StripeClient {
     return this.s.webhooks.constructEvent(reqBody, signature, secret);
   }
 
-  async createBasicTierCheckout() {
-    return await this.createSubCheckoutSession('basicSub');
+  async createBasicTierCheckout(customerId: string) {
+    return await this.createSubCheckoutSession('basicSub', customerId);
   }
 
-  async createStdTierCheckout() {
-    return await this.createSubCheckoutSession('stdSub');
+  async createStdTierCheckout(customerId: string) {
+    return await this.createSubCheckoutSession('stdSub', customerId);
   }
 
-  async createPremTierCheckout() {
-    return await this.createSubCheckoutSession('premSub');
+  async createPremTierCheckout(customerId: string) {
+    return await this.createSubCheckoutSession('premSub', customerId);
   }
 
   getProducts() {
     if (dev) {
-      return this.testProducts;
+      return this.testPrices;
     } else {
       return this.liveProducts;
     }
