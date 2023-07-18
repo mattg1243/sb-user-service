@@ -12,7 +12,6 @@ import {
   findVerifyEmailCodeByUser,
   getCreditsBalance,
   searchAllUsers,
-  subCredits,
   updateUserById,
 } from '../services/User.service';
 import { CreateUserInput, UpdateUserInput, validSocialLinkDomains } from '../database/schemas/User.schema';
@@ -24,7 +23,12 @@ import { sendResetPasswordEmail, sendVerificationEmail } from '../utils/sendgrid
 import User from '../database/models/User.entity';
 import { makeValidUrl } from '../utils/stringMatchers';
 import StripeClient from '../utils/StripeClient';
-import Stripe from 'stripe';
+import { LIMITED_LICENSE_COST, UNLIMITED_LICENSE_COST } from '../config';
+import { subCredits } from '../services/User.service';
+import { AppDataSource } from '../database/dataSource';
+import Transaction from '../database/models/Transaction.model';
+import License from '../database/models/License.entity';
+import { userHasLicense } from '../services/License.service';
 
 const BEATS_HOST = process.env.BEATS_HOST || 'http://localhost:8082';
 
@@ -100,7 +104,7 @@ export const registerUserHandler = async (req: Request<{}, {}, CreateUserInput>,
       stripeCustomerId: stripeCustomer.id,
     });
     // create a verification code and save it to the table
-    const verificationCode = await createVerifyEmailCode(user._id);
+    const verificationCode = await createVerifyEmailCode(user);
     // send the email
     const emailSendInfo = await sendVerificationEmail(verificationCode.hash, user.email, user._id);
     console.log(emailSendInfo);
@@ -129,7 +133,7 @@ export const verifyEmailHandler = async (req: Request, res: Response) => {
   }
   try {
     const verifyEmail = await findVerifyEmailCode(code as string);
-    if (verifyEmail?.userId == (user as string)) {
+    if (verifyEmail?.user._id == (user as string)) {
       const userFromDB = await findUserById(user as string);
       if (!userFromDB) {
         return res.status(500).json({ message: 'No user found ' });
@@ -152,14 +156,15 @@ export const resendVerificationEmailHandler = async (req: Request, res: Response
     return res.status(500).json({ message: 'No user found' });
   }
   try {
-    let verifyEmail = await findVerifyEmailCodeByUser(user as string);
-    if (!verifyEmail) {
-      verifyEmail = await createVerifyEmailCode(user as string);
-    }
     const userEntitiy = await findUserById(user as string);
     if (!userEntitiy) {
       return res.status(500).json({ message: 'No user found in the database' });
     }
+    let verifyEmail = await findVerifyEmailCodeByUser(user as string);
+    if (!verifyEmail) {
+      verifyEmail = await createVerifyEmailCode(userEntitiy);
+    }
+
     const sendEmailRes = await sendVerificationEmail(verifyEmail.hash, userEntitiy.email, user as string);
     console.log(sendEmailRes);
     return res.status(200).json({ message: 'Verification email resent' });
@@ -371,6 +376,84 @@ export const subCreditsHandler = async (req: Request, res: Response) => {
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: err });
+  }
+};
+
+export const purchaseBeatHandler = async (
+  req: Request<{}, {}, { userId: string; beat: string; seller: string; licenseType: 'limited' | 'unlimited' }>,
+  res: Response
+) => {
+  const { userId, beat, seller, licenseType } = req.body;
+  if (!userId || !beat || !seller || !licenseType) {
+    return res.status(400).json({ message: 'Missing a required value in the request' });
+  }
+
+  try {
+    // see if user already owns a license for this beat
+    const hasLicense = await userHasLicense(userId, beat);
+    if (hasLicense) {
+      // user already owns the beat, return 200 to beat service
+      return res.status(200).json({ message: 'User already owns a license to this beat' });
+    }
+    // determine amount of credits to spend based on license type
+    let beatCost: number;
+    switch (licenseType) {
+      case 'unlimited':
+        beatCost = UNLIMITED_LICENSE_COST;
+        break;
+      case 'limited':
+        beatCost = LIMITED_LICENSE_COST;
+        break;
+      default:
+        return res.status(400).json({ message: 'Invalid license type specified in request' });
+    }
+    // database transaction
+    await AppDataSource.manager.transaction(async (txManager) => {
+      // get the repository needed
+      const userRepo = txManager.getRepository(User);
+      const txRepo = txManager.getRepository(Transaction);
+      const licenseRepo = txManager.getRepository(License);
+      try {
+        // get the buyer and seller entities
+        const buyerObj = await userRepo.findOneBy({ _id: userId });
+        const sellerObj = await userRepo.findOneBy({ _id: seller });
+        if (!buyerObj || !sellerObj) {
+          return Promise.reject('No users found with provided ids while querying buyer / seller');
+        }
+        // subtract credits from buyers balance
+        if (buyerObj.creditsToSpend - beatCost < 0) {
+          return Promise.reject('Not enough credits for this purchase');
+        }
+        buyerObj.creditsToSpend -= beatCost;
+        // add credits to sellers balance
+        sellerObj.creditsAcquired += beatCost;
+        // create the transaction
+        const tx = new Transaction();
+        tx.beatId = beat;
+        tx.creditAmount = beatCost;
+        tx.purchasingUser = buyerObj;
+        tx.sellingUser = sellerObj;
+        // create the license
+        const license = new License();
+        license.type = licenseType;
+        license.user = buyerObj;
+        license.beat = beat;
+        license.transaction = tx;
+        // save all entities asynchronously
+        const saveBuyerPromise = userRepo.save(buyerObj);
+        const saveSellerPromise = userRepo.save(sellerObj);
+        const saveTxPromse = txRepo.save(tx);
+        const saveLicensePromise = licenseRepo.save(license);
+        await Promise.all([saveBuyerPromise, saveSellerPromise, saveTxPromse, saveLicensePromise]);
+        return res.status(200).json({ message: 'Transaction completed successfully' });
+      } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: 'An error occurred processing your transaction', err });
+      }
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: 'Ann error occurred purchasing a beat', err });
   }
 };
 
