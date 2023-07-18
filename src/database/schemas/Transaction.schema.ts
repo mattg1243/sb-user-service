@@ -1,12 +1,9 @@
-import { number, object, string, TypeOf } from 'zod';
+import { number, object, string, TypeOf, z } from 'zod';
+import User from '../models/User.entity';
 
-export const createTransactionSchema = object({
-  body: object({
-    // will need to add credit amount when we add more license options
-    // it defaults to 1 for now for all downloads
-    purchasingUser: string(),
-    sellingUser: string(),
-  }),
-});
-
-export type CreateTransactionSchema = TypeOf<typeof createTransactionSchema>['body'];
+export interface ICreateTransactionSchema {
+  beatId: string;
+  purchasingUser: User;
+  sellingUser: User;
+  creditAmount: number;
+}
