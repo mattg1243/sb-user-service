@@ -1,15 +1,24 @@
-import { Entity, Column } from 'typeorm';
+import { Entity, Column, OneToOne, ManyToOne, JoinColumn } from 'typeorm';
 import Model from './Model.entity';
+import License from './License.entity';
+import User from './User.entity';
 
 @Entity('transactions')
 export default class Transaction extends Model {
-  @Column({ nullable: false, default: 1 })
-  creditAmount: 1;
+  @Column({ nullable: false })
+  beatId: string;
 
   @Column({ nullable: false })
-  purchasingUser: string;
+  creditAmount: number;
 
-  @Column({ nullable: false })
-  sellingUser: string;
+  @ManyToOne(() => User, (user) => user.buyTransactions)
+  @JoinColumn()
+  purchasingUser: User;
 
+  @ManyToOne(() => User, (user) => user.sellTransactions)
+  @JoinColumn()
+  sellingUser: User;
+
+  @OneToOne(() => License, (license) => license.transaction)
+  license: License;
 }

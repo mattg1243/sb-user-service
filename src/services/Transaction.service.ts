@@ -1,15 +1,21 @@
 import { AppDataSource } from '../database/dataSource';
 import Transaction from '../database/models/Transaction.model';
-import { CreateTransactionSchema } from '../database/schemas/Transaction.schema';
+import { ICreateTransactionSchema } from '../database/schemas/Transaction.schema';
 import { Between } from 'typeorm';
+import User from '../database/models/User.entity';
 
 export namespace TransactionServices {
   const transactionRepository = AppDataSource.getRepository(Transaction);
   /**
    * Creates a new transaction and saves it to the database.
    */
-  export const createTransaction = async (input: CreateTransactionSchema) => {
-    return await transactionRepository.save(input);
+  export const createTransaction = async (input: ICreateTransactionSchema) => {
+    const tx = new Transaction();
+    tx.beatId = input.beatId;
+    tx.creditAmount = input.creditAmount;
+    tx.purchasingUser = input.purchasingUser;
+    tx.sellingUser = input.sellingUser;
+    return await transactionRepository.save(tx);
   };
   /**
    * Gets all transactions in which the provided user is the buyer of the beat. If
@@ -18,10 +24,14 @@ export namespace TransactionServices {
    */
   export const getTransactionsByPurchasingUser = async (userId: string, dateRange?: { start: Date; end: Date }) => {
     if (!dateRange) {
-      return await transactionRepository.find({ where: { purchasingUser: userId } });
+      return await transactionRepository.find({
+        relations: { purchasingUser: true },
+        where: { purchasingUser: { _id: userId } },
+      });
     } else {
       return await transactionRepository.find({
-        where: { purchasingUser: userId, created_at: Between(dateRange.start, dateRange.end) },
+        relations: { purchasingUser: true },
+        where: { purchasingUser: { _id: userId }, created_at: Between(dateRange.start, dateRange.end) },
       });
     }
   };
@@ -32,10 +42,14 @@ export namespace TransactionServices {
    */
   export const getTransactionsBySellingUser = async (userId: string, dateRange?: { start: Date; end: Date }) => {
     if (!dateRange) {
-      return await transactionRepository.find({ where: { sellingUser: userId } });
+      return await transactionRepository.find({
+        relations: { sellingUser: true },
+        where: { sellingUser: { _id: userId } },
+      });
     } else {
       return await transactionRepository.find({
-        where: { sellingUser: userId, created_at: Between(dateRange.start, dateRange.end) },
+        relations: { sellingUser: true },
+        where: { sellingUser: { _id: userId }, created_at: Between(dateRange.start, dateRange.end) },
       });
     }
   };
