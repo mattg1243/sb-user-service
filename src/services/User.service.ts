@@ -13,16 +13,16 @@ export const createUser = async (input: CreateUserInput) => {
   return (await AppDataSource.manager.save(AppDataSource.manager.create(User, input))) as User;
 };
 
-export const createVerifyEmailCode = async (userId: string) => {
-  return await AppDataSource.manager.save(AppDataSource.manager.create(EmailVerify, { userId }));
+export const createVerifyEmailCode = async (user: User) => {
+  return await AppDataSource.manager.save(AppDataSource.manager.create(EmailVerify, { user }));
 };
 
 export const findVerifyEmailCode = async (code: string) => {
-  return await emailVerifyRepository.findOne({ where: { hash: code }, select: { userId: true } });
+  return await emailVerifyRepository.findOne({ where: { hash: code }, select: { user: { _id: true } } });
 };
 
 export const findVerifyEmailCodeByUser = async (userId: string) => {
-  return await emailVerifyRepository.findOne({ where: { userId } });
+  return await emailVerifyRepository.findOne({ where: { user: { _id: userId } } });
 };
 
 export const deleteVerifyEmailCode = async (id: string) => {

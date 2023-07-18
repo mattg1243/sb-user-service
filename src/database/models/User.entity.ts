@@ -1,8 +1,11 @@
-import { Entity, Column, BeforeInsert } from 'typeorm';
+import { Entity, Column, BeforeInsert, ManyToOne, OneToMany, OneToOne } from 'typeorm';
 import { Length } from 'class-validator';
 import Model from './Model.entity';
 import { randomBytes } from 'crypto';
 import * as bcrypt from 'bcrypt';
+import License from './License.entity';
+import Transaction from './Transaction.model';
+import EmailVerify from './EmailVerify.entity';
 
 @Entity('users')
 export default class User extends Model {
@@ -39,6 +42,15 @@ export default class User extends Model {
   // these credit columns will reset every month
   @Column({ default: 0 })
   creditsToSpend: number;
+
+  @OneToMany(() => License, (license) => license.user)
+  licenses: License[];
+
+  @OneToMany(() => Transaction, (transaction) => transaction.purchasingUser)
+  buyTransactions: Transaction[];
+
+  @OneToMany(() => Transaction, (transaction) => transaction.sellingUser)
+  sellTransactions: Transaction[];
 
   @Column({ default: 0 })
   creditsAcquired: number;
@@ -80,6 +92,9 @@ export default class User extends Model {
 
   @Column({ type: 'timestamp', nullable: true, select: false })
   passwordResetTokenExp: Date;
+
+  @OneToOne(() => EmailVerify, (emailVerify) => emailVerify.user)
+  emailVerify: EmailVerify;
 
   toJSON() {
     return { ...this, password: undefined };
