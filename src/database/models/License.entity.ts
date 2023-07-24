@@ -11,6 +11,7 @@ export default class License extends Model {
   type: LicenseType;
 
   @ManyToOne(() => User, (user) => user.licenses, { nullable: false })
+  @JoinColumn()
   user: User;
 
   @Column({ nullable: false })
