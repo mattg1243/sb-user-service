@@ -7,10 +7,14 @@ import {
   createStripePortalSessionHandler,
   createSubscriptionHandler,
   getCreditsBalanceHandler,
+  getEarnedCreditsHandler,
+  getLicensedBeatshandler,
+  purchaseBeatHandler,
   resendVerificationEmailHandler,
   resetPasswordHandler,
   searchUsersHandlers,
   subCreditsHandler,
+  testNotifyHandler,
   verifyEmailHandler,
 } from '../handlers/User.handler';
 import {
@@ -29,7 +33,7 @@ import {
   uploadAvatarHandler,
   addCreditsHandler,
 } from '../handlers/User.handler';
-import { stripeCustomerPortalHandler } from '../handlers/Stripe.handler';
+import { createStripeConnectAcctHandler, stripeCustomerPortalHandler } from '../handlers/Stripe.handler';
 
 const router = express.Router();
 
@@ -38,6 +42,7 @@ const upload = multer({
 });
 
 router.get('/', getUserHandler);
+router.get('/notify-test', testNotifyHandler);
 router.get('/search', searchUsersHandlers);
 router.get('/avatar', getAvatarHandler);
 router.post('/login', getUserForLoginHTTP);
@@ -58,8 +63,12 @@ router.post('/avatar', verifyUser, upload.single('newAvatar'), uploadAvatarHandl
 router.post('/follow', verifyUser, followUserHandler);
 router.post('/unfollow', verifyUser, unfollowUserHandler);
 router.post('/add-credits', verifyUser, addCreditsHandler);
-router.post('/sub-credits', subCreditsHandler);
+// this route is only hit from the beats service
+router.post('/purchase-beat', purchaseBeatHandler);
+router.post('/create-stripe-connect-acct', verifyUser, createStripeConnectAcctHandler);
 router.get('/credits-balance', verifyUser, getCreditsBalanceHandler);
+router.get('/credits-earned', verifyUser, getEarnedCreditsHandler);
+router.get('/licenses', getLicensedBeatshandler);
 
 router.get(
   '*',

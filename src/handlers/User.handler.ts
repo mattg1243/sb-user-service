@@ -11,8 +11,8 @@ import {
   findVerifyEmailCode,
   findVerifyEmailCodeByUser,
   getCreditsBalance,
+  getCreditsEarned,
   searchAllUsers,
-  subCredits,
   updateUserById,
 } from '../services/User.service';
 import { CreateUserInput, UpdateUserInput, validSocialLinkDomains } from '../database/schemas/User.schema';
@@ -24,14 +24,34 @@ import { sendResetPasswordEmail, sendVerificationEmail } from '../utils/sendgrid
 import User from '../database/models/User.entity';
 import { makeValidUrl } from '../utils/stringMatchers';
 import StripeClient from '../utils/StripeClient';
-import Stripe from 'stripe';
+import { LIMITED_LICENSE_COST, UNLIMITED_LICENSE_COST } from '../config';
+import { subCredits } from '../services/User.service';
+import { AppDataSource } from '../database/dataSource';
+import Transaction from '../database/models/Transaction.model';
+import License from '../database/models/License.entity';
+import { getAllLicensesByUser, userHasLicense } from '../services/License.service';
 
-const BEATS_HOST = process.env.BEATS_HOST || 'http://localhost:8082';
+export const BEATS_HOST = process.env.BEATS_HOST || 'http://localhost:8082';
+export const NOTIF_HOST = process.env.NOTIF_HOST || 'http://0.0.0.0:8083';
 
 const stripeClient = new StripeClient();
 
 export const indexHandler = async (req: Request, res: Response, next: NextFunction) => {
   return res.status(200).json({ message: 'User service online!' });
+};
+
+export const testNotifyHandler = async (req: Request, res: Response) => {
+  try {
+    const notifRes = await axios.post(`${NOTIF_HOST}/notify`, {
+      user_id: '127a79a2-bcc9-4e9e-8e46-6284f57e7420',
+      message: 'hello mothafucka',
+    });
+    console.log(notifRes.status);
+    return res.status(200).send();
+  } catch (err) {
+    console.error(err);
+    return res.status(500).send();
+  }
 };
 
 export const getUserHandler = async (req: Request, res: Response) => {
@@ -100,7 +120,7 @@ export const registerUserHandler = async (req: Request<{}, {}, CreateUserInput>,
       stripeCustomerId: stripeCustomer.id,
     });
     // create a verification code and save it to the table
-    const verificationCode = await createVerifyEmailCode(user._id);
+    const verificationCode = await createVerifyEmailCode(user);
     // send the email
     const emailSendInfo = await sendVerificationEmail(verificationCode.hash, user.email, user._id);
     console.log(emailSendInfo);
@@ -129,7 +149,7 @@ export const verifyEmailHandler = async (req: Request, res: Response) => {
   }
   try {
     const verifyEmail = await findVerifyEmailCode(code as string);
-    if (verifyEmail?.userId == (user as string)) {
+    if (verifyEmail?.user._id == (user as string)) {
       const userFromDB = await findUserById(user as string);
       if (!userFromDB) {
         return res.status(500).json({ message: 'No user found ' });
@@ -152,14 +172,15 @@ export const resendVerificationEmailHandler = async (req: Request, res: Response
     return res.status(500).json({ message: 'No user found' });
   }
   try {
-    let verifyEmail = await findVerifyEmailCodeByUser(user as string);
-    if (!verifyEmail) {
-      verifyEmail = await createVerifyEmailCode(user as string);
-    }
     const userEntitiy = await findUserById(user as string);
     if (!userEntitiy) {
       return res.status(500).json({ message: 'No user found in the database' });
     }
+    let verifyEmail = await findVerifyEmailCodeByUser(user as string);
+    if (!verifyEmail) {
+      verifyEmail = await createVerifyEmailCode(userEntitiy);
+    }
+
     const sendEmailRes = await sendVerificationEmail(verifyEmail.hash, userEntitiy.email, user as string);
     console.log(sendEmailRes);
     return res.status(200).json({ message: 'Verification email resent' });
@@ -329,13 +350,13 @@ export const createSubscriptionHandler = async (
     // match to subTier
     switch (subTier) {
       case 'basic':
-        sessionUrl = (await stripeClient.createBasicTierCheckout()).url as string;
+        sessionUrl = (await stripeClient.createBasicTierCheckout(customerId)).url as string;
         break;
       case 'std':
-        sessionUrl = (await stripeClient.createStdTierCheckout()).url as string;
+        sessionUrl = (await stripeClient.createStdTierCheckout(customerId)).url as string;
         break;
       case 'prem':
-        sessionUrl = (await stripeClient.createPremTierCheckout()).url as string;
+        sessionUrl = (await stripeClient.createPremTierCheckout(customerId)).url as string;
         break;
       default:
         console.error(`Invalid sub tier requested by customer ${customerId}`);
@@ -371,6 +392,112 @@ export const subCreditsHandler = async (req: Request, res: Response) => {
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: err });
+  }
+};
+
+export const getEarnedCreditsHandler = async (req: Request, res: Response) => {
+  const user = req.user;
+  if (!user) {
+    return res.status(400).json({ message: 'Missing user in request' });
+  }
+  try {
+    const earnedCredits = await getCreditsEarned(user.id);
+    return res.status(200).json({ earnedCredits });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: 'An error occured getting your earned credits', err });
+  }
+};
+
+export const purchaseBeatHandler = async (
+  req: Request<{}, {}, { userId: string; beat: string; seller: string; licenseType: 'limited' | 'unlimited' }>,
+  res: Response
+) => {
+  const { userId, beat, seller, licenseType } = req.body;
+  if (!userId || !beat || !seller || !licenseType) {
+    return res.status(400).json({ message: 'Missing a required value in the request' });
+  }
+
+  try {
+    // see if user already owns a license for this beat
+    const hasLicense = await userHasLicense(userId, beat);
+    if (hasLicense) {
+      // user already owns the beat, return 200 to beat service
+      return res.status(200).json({ message: 'User already owns a license to this beat' });
+    }
+    // determine amount of credits to spend based on license type
+    let beatCost: number;
+    switch (licenseType) {
+      case 'unlimited':
+        beatCost = UNLIMITED_LICENSE_COST;
+        break;
+      case 'limited':
+        beatCost = LIMITED_LICENSE_COST;
+        break;
+      default:
+        return res.status(400).json({ message: 'Invalid license type specified in request' });
+    }
+    // database transaction
+    await AppDataSource.manager.transaction(async (txManager) => {
+      // get the repository needed
+      const userRepo = txManager.getRepository(User);
+      const txRepo = txManager.getRepository(Transaction);
+      const licenseRepo = txManager.getRepository(License);
+      try {
+        // get the buyer and seller entities
+        const buyerObj = await userRepo.findOneBy({ _id: userId });
+        const sellerObj = await userRepo.findOneBy({ _id: seller });
+        if (!buyerObj || !sellerObj) {
+          return Promise.reject('No users found with provided ids while querying buyer / seller');
+        }
+        // subtract credits from buyers balance
+        if (buyerObj.creditsToSpend - beatCost < 0) {
+          return Promise.reject('Not enough credits for this purchase');
+        }
+        buyerObj.creditsToSpend -= beatCost;
+        // add credits to sellers balance
+        sellerObj.creditsAcquired += beatCost;
+        // create the transaction
+        const tx = new Transaction();
+        tx.beatId = beat;
+        tx.creditAmount = beatCost;
+        tx.purchasingUser = buyerObj;
+        tx.sellingUser = sellerObj;
+        // create the license
+        const license = new License();
+        license.type = licenseType;
+        license.user = buyerObj;
+        license.beat = beat;
+        license.transaction = tx;
+        // save all entities asynchronously
+        const saveBuyerPromise = userRepo.save(buyerObj);
+        const saveSellerPromise = userRepo.save(sellerObj);
+        const saveTxPromse = txRepo.save(tx);
+        const saveLicensePromise = licenseRepo.save(license);
+        await Promise.all([saveBuyerPromise, saveSellerPromise, saveTxPromse, saveLicensePromise]);
+        return res.status(200).json({ message: 'Transaction completed successfully' });
+      } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: 'An error occurred processing your transaction', err });
+      }
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: 'An error occurred purchasing a beat', err });
+  }
+};
+
+export const getLicensedBeatshandler = async (req: Request, res: Response) => {
+  const user = req.query.user as string;
+  console.log('getting licenses...');
+  try {
+    const licenses = await getAllLicensesByUser(user, ['license.beat']);
+    let beatIds: Array<string> = [];
+    licenses.map((license) => beatIds.push(license.beat));
+    return res.status(200).json({ beatIds });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: 'An error occured getting licensed beats', err });
   }
 };
 

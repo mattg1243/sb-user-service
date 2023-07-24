@@ -2,6 +2,7 @@ import User from '../database/models/User.entity';
 import EmailVerify from '../database/models/EmailVerify.entity';
 import { CreateUserInput } from '../database/schemas/User.schema';
 import { AppDataSource } from '../database/dataSource';
+import CreditAllocation from '../database/models/CreditAllocation.model';
 
 // TODO: implement CustomErr class for all thrown errors
 
@@ -13,16 +14,16 @@ export const createUser = async (input: CreateUserInput) => {
   return (await AppDataSource.manager.save(AppDataSource.manager.create(User, input))) as User;
 };
 
-export const createVerifyEmailCode = async (userId: string) => {
-  return await AppDataSource.manager.save(AppDataSource.manager.create(EmailVerify, { userId }));
+export const createVerifyEmailCode = async (user: User) => {
+  return await AppDataSource.manager.save(AppDataSource.manager.create(EmailVerify, { user }));
 };
 
 export const findVerifyEmailCode = async (code: string) => {
-  return await emailVerifyRepository.findOne({ where: { hash: code }, select: { userId: true } });
+  return await emailVerifyRepository.findOne({ where: { hash: code }, select: { user: { _id: true } } });
 };
 
 export const findVerifyEmailCodeByUser = async (userId: string) => {
-  return await emailVerifyRepository.findOne({ where: { userId } });
+  return await emailVerifyRepository.findOne({ where: { user: { _id: userId } } });
 };
 
 export const deleteVerifyEmailCode = async (id: string) => {
@@ -72,15 +73,22 @@ export const changeUserPassword = async (email: string, newPasswordHash: string)
 };
 
 export const addCredits = async (userId: string, creditsToAdd: number) => {
-  const user = await findUserById(userId);
-  if (!user) {
-    return Promise.reject('No user found with this ID');
-  }
-  console.log('Current credit balance: ', user.creditsToSpend);
-  user.creditsToSpend += creditsToAdd;
-  console.log('New credit balance: ', user.creditsToSpend);
-  await userRepository.save(user);
-  return Promise.resolve(user.creditsToSpend);
+  AppDataSource.transaction(async (txManager) => {
+    const userRepo = txManager.getRepository(User);
+    const creditRepo = txManager.getRepository(CreditAllocation);
+    const user = await userRepo.findOne({ where: { _id: userId } });
+    if (!user) {
+      return Promise.reject('No user found with this ID');
+    }
+    const creditAllocation = new CreditAllocation();
+    creditAllocation.user = user;
+    creditAllocation.amount = creditsToAdd;
+    user.creditsToSpend += creditsToAdd;
+    const saveUserPromise = userRepo.save(user);
+    const saveCreditAllocationPromise = creditRepo.save(creditAllocation);
+    await Promise.all([saveUserPromise, saveCreditAllocationPromise]);
+    return user.creditsToSpend;
+  });
 };
 
 export const subCredits = async (userId: string, creditsToSub: number) => {
@@ -107,10 +115,28 @@ export const getCreditsBalance = async (userId: string) => {
   return Promise.resolve(creditsBalance);
 };
 
-export const getUserByStripCustomerId = async (customerId: string) => {
+export const getCreditsEarned = async (userId: string) => {
+  const user = await findUserById(userId);
+  if (!user) {
+    return Promise.reject('No user found with this ID');
+  }
+  const creditsEarned = user.creditsAcquired;
+  return creditsEarned;
+};
+
+export const getUserByStripeCustomerId = async (customerId: string, eventType?: string) => {
   const user = await userRepository.findOne({ where: { stripeCustomerId: customerId } });
   if (!user) {
-    return Promise.reject('No user found with this Stripe customer ID');
+    return Promise.reject('No user found with Stripe customer ID ' + customerId + 'for event type ' + eventType);
+  } else {
+    return user;
+  }
+};
+
+export const getUserByStripeConnectId = async (connectId: string) => {
+  const user = await userRepository.findOne({ where: { stripeConnectId: connectId } });
+  if (!user) {
+    return Promise.reject('No user found with Stripe Connect Id ' + connectId);
   } else {
     return user;
   }

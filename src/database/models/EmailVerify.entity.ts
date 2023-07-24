@@ -1,5 +1,6 @@
-import { Entity, Column, Generated } from 'typeorm';
+import { Entity, Column, Generated, JoinColumn, OneToOne } from 'typeorm';
 import Model from './Model.entity';
+import User from './User.entity';
 
 @Entity('email_verify')
 export default class EmailVerify extends Model {
@@ -7,6 +8,7 @@ export default class EmailVerify extends Model {
   @Generated('uuid')
   hash: string;
 
-  @Column()
-  userId: string;
+  @OneToOne(() => User, (user) => user.emailVerify)
+  @JoinColumn()
+  user: User;
 }
