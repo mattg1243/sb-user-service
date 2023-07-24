@@ -6,6 +6,7 @@ import * as bcrypt from 'bcrypt';
 import License from './License.entity';
 import Transaction from './Transaction.model';
 import EmailVerify from './EmailVerify.entity';
+import CreditAllocation from './CreditAllocation.model';
 
 @Entity('users')
 export default class User extends Model {
@@ -42,6 +43,9 @@ export default class User extends Model {
   // these credit columns will reset every month
   @Column({ default: 0 })
   creditsToSpend: number;
+
+  @OneToMany(() => CreditAllocation, (creditAllocation) => creditAllocation.user)
+  creditAllocations: CreditAllocation[];
 
   @OneToMany(() => License, (license) => license.user)
   licenses: License[];
