@@ -129,4 +129,19 @@ export default class StripeClient {
   async getPaymentIntent(paymentIntentId: string) {
     return await this.s.paymentIntents.retrieve(paymentIntentId);
   }
+
+  async getMonthlySubRevenue() {
+    const today = new Date();
+    const firstOfThisMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    console.log(firstOfThisMonth.toLocaleString());
+    const summary = await this.s.balanceTransactions.list({
+      type: 'charge',
+      created: { gt: firstOfThisMonth.getTime() / 1000 },
+    });
+    let revAmount = 0;
+    summary.data.map((obj) => {
+      revAmount += obj.net;
+    });
+    return revAmount / 100;
+  }
 }
