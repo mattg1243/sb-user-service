@@ -11,6 +11,7 @@ import {
   findVerifyEmailCode,
   findVerifyEmailCodeByUser,
   getCreditsBalance,
+  getCreditsEarned,
   searchAllUsers,
   updateUserById,
 } from '../services/User.service';
@@ -28,14 +29,29 @@ import { subCredits } from '../services/User.service';
 import { AppDataSource } from '../database/dataSource';
 import Transaction from '../database/models/Transaction.model';
 import License from '../database/models/License.entity';
-import { userHasLicense } from '../services/License.service';
+import { getAllLicensesByUser, userHasLicense } from '../services/License.service';
 
-const BEATS_HOST = process.env.BEATS_HOST || 'http://localhost:8082';
+export const BEATS_HOST = process.env.BEATS_HOST || 'http://localhost:8082';
+export const NOTIF_HOST = process.env.NOTIF_HOST || 'http://0.0.0.0:8083';
 
 const stripeClient = new StripeClient();
 
 export const indexHandler = async (req: Request, res: Response, next: NextFunction) => {
   return res.status(200).json({ message: 'User service online!' });
+};
+
+export const testNotifyHandler = async (req: Request, res: Response) => {
+  try {
+    const notifRes = await axios.post(`${NOTIF_HOST}/notify`, {
+      user_id: '127a79a2-bcc9-4e9e-8e46-6284f57e7420',
+      message: 'hello mothafucka',
+    });
+    console.log(notifRes.status);
+    return res.status(200).send();
+  } catch (err) {
+    console.error(err);
+    return res.status(500).send();
+  }
 };
 
 export const getUserHandler = async (req: Request, res: Response) => {
@@ -379,6 +395,20 @@ export const subCreditsHandler = async (req: Request, res: Response) => {
   }
 };
 
+export const getEarnedCreditsHandler = async (req: Request, res: Response) => {
+  const user = req.user;
+  if (!user) {
+    return res.status(400).json({ message: 'Missing user in request' });
+  }
+  try {
+    const earnedCredits = await getCreditsEarned(user.id);
+    return res.status(200).json({ earnedCredits });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: 'An error occured getting your earned credits', err });
+  }
+};
+
 export const purchaseBeatHandler = async (
   req: Request<{}, {}, { userId: string; beat: string; seller: string; licenseType: 'limited' | 'unlimited' }>,
   res: Response
@@ -453,7 +483,21 @@ export const purchaseBeatHandler = async (
     });
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ message: 'Ann error occurred purchasing a beat', err });
+    return res.status(500).json({ message: 'An error occurred purchasing a beat', err });
+  }
+};
+
+export const getLicensedBeatshandler = async (req: Request, res: Response) => {
+  const user = req.query.user as string;
+  console.log('getting licenses...');
+  try {
+    const licenses = await getAllLicensesByUser(user, ['license.beat']);
+    let beatIds: Array<string> = [];
+    licenses.map((license) => beatIds.push(license.beat));
+    return res.status(200).json({ beatIds });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: 'An error occured getting licensed beats', err });
   }
 };
 

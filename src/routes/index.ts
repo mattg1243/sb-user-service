@@ -7,11 +7,14 @@ import {
   createStripePortalSessionHandler,
   createSubscriptionHandler,
   getCreditsBalanceHandler,
+  getEarnedCreditsHandler,
+  getLicensedBeatshandler,
   purchaseBeatHandler,
   resendVerificationEmailHandler,
   resetPasswordHandler,
   searchUsersHandlers,
   subCreditsHandler,
+  testNotifyHandler,
   verifyEmailHandler,
 } from '../handlers/User.handler';
 import {
@@ -39,6 +42,7 @@ const upload = multer({
 });
 
 router.get('/', getUserHandler);
+router.get('/notify-test', testNotifyHandler);
 router.get('/search', searchUsersHandlers);
 router.get('/avatar', getAvatarHandler);
 router.post('/login', getUserForLoginHTTP);
@@ -63,6 +67,8 @@ router.post('/add-credits', verifyUser, addCreditsHandler);
 router.post('/purchase-beat', purchaseBeatHandler);
 router.post('/create-stripe-connect-acct', verifyUser, createStripeConnectAcctHandler);
 router.get('/credits-balance', verifyUser, getCreditsBalanceHandler);
+router.get('/credits-earned', verifyUser, getEarnedCreditsHandler);
+router.get('/licenses', getLicensedBeatshandler);
 
 router.get(
   '*',
