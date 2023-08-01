@@ -143,6 +143,7 @@ export const registerUserHandler = async (req: Request<{}, {}, CreateUserInput>,
 export const verifyEmailHandler = async (req: Request, res: Response) => {
   const user = req.query.user;
   const code = req.query.code;
+  console.log(req);
   // query db to see if the secret code exists
   if (!user) {
     return res.status(500).json({ message: 'No user found' });
@@ -161,6 +162,7 @@ export const verifyEmailHandler = async (req: Request, res: Response) => {
       }
     }
   } catch (err) {
+    console.error(err);
     return res.status(503).json({ message: 'An error occured ' });
   }
 };
