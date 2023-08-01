@@ -19,7 +19,11 @@ export const createVerifyEmailCode = async (user: User) => {
 };
 
 export const findVerifyEmailCode = async (code: string) => {
-  return await emailVerifyRepository.findOne({ where: { hash: code }, select: { user: { _id: true } } });
+  return await emailVerifyRepository.findOne({
+    where: { hash: code },
+    relations: { user: true },
+    select: { user: { _id: true } },
+  });
 };
 
 export const findVerifyEmailCodeByUser = async (userId: string) => {
