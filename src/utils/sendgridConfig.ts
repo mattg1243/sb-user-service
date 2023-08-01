@@ -12,7 +12,7 @@ sgMail.setApiKey(sgApiKey);
 export const sendVerificationEmail = async (verificationCode: string, userEmail: string, userId: string) => {
   const verifyEmail: sgMail.MailDataRequired = {
     to: userEmail,
-    from: 'mattgallucci@orangemusicent.com',
+    from: 'no-reply@orangemusicent.com',
     subject: 'Verify your Sweatshop Beats Account',
     html: `<p>Visit ${CLIENT_HOST}/verify-email?code=${verificationCode}&user=${userId}&email=${userEmail} to verify your account<p>`,
   };
@@ -28,7 +28,7 @@ export const sendVerificationEmail = async (verificationCode: string, userEmail:
 export const sendResetPasswordEmail = async (resetToken: string, userEmail: string) => {
   const resetPasswordEmail: sgMail.MailDataRequired = {
     to: userEmail,
-    from: 'mattgallucci@orangemusicent.com',
+    from: 'no-reply@orangemusicent.com',
     subject: 'Reset your Sweatshop Beats Password',
     html: `<p>Visit ${CLIENT_HOST}/reset-password?token=${resetToken}&email=${userEmail} to reset your password<p>`,
   };
