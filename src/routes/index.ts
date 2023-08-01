@@ -2,21 +2,7 @@ import * as express from 'express';
 import path from 'path';
 import multer from 'multer';
 import { verifyUser } from '../middleware/verifyUser';
-import {
-  changePasswordHandler,
-  createStripePortalSessionHandler,
-  createSubscriptionHandler,
-  getCreditsBalanceHandler,
-  getEarnedCreditsHandler,
-  getLicensedBeatshandler,
-  purchaseBeatHandler,
-  resendVerificationEmailHandler,
-  resetPasswordHandler,
-  searchUsersHandlers,
-  subCreditsHandler,
-  testNotifyHandler,
-  verifyEmailHandler,
-} from '../handlers/User.handler';
+import { testNotifyHandler } from '../handlers/User.handler';
 import {
   followUserHandler,
   unfollowUserHandler,
@@ -25,14 +11,24 @@ import {
   isFollowingHandler,
 } from '../handlers/UserFollowing.handler';
 import {
-  registerUserHandler,
   getUserHandler,
+  searchUsersHandlers,
   getAvatarHandler,
+  registerUserHandler,
+  verifyEmailHandler,
+  resendVerificationEmailHandler,
+  resetPasswordHandler,
+  changePasswordHandler,
   updateUserHandler,
-  getUserForLoginHTTP,
   uploadAvatarHandler,
-  addCreditsHandler,
-} from '../handlers/User.handler';
+  createSubscriptionHandler,
+  createStripePortalSessionHandler,
+  getEarnedCreditsHandler,
+  purchaseBeatHandler,
+  getLicensedBeatshandler,
+  getCreditsBalanceHandler,
+  getUserForLoginHTTP,
+} from '../handlers/UserHandlers';
 import { createStripeConnectAcctHandler, stripeCustomerPortalHandler } from '../handlers/Stripe.handler';
 
 const router = express.Router();
@@ -62,7 +58,6 @@ router.post('/update', verifyUser, updateUserHandler);
 router.post('/avatar', verifyUser, upload.single('newAvatar'), uploadAvatarHandler);
 router.post('/follow', verifyUser, followUserHandler);
 router.post('/unfollow', verifyUser, unfollowUserHandler);
-router.post('/add-credits', verifyUser, addCreditsHandler);
 // this route is only hit from the beats service
 router.post('/purchase-beat', purchaseBeatHandler);
 router.post('/create-stripe-connect-acct', verifyUser, createStripeConnectAcctHandler);
