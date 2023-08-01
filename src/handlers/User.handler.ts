@@ -105,17 +105,29 @@ export const getAvatarHandler = async (req: Request, res: Response) => {
 };
 
 export const registerUserHandler = async (req: Request<{}, {}, CreateUserInput>, res: Response, next: NextFunction) => {
-  const { email, password, artistName } = req.body;
+  const { email, password, artistName, dateOfBirth } = req.body;
   const emailRe = /^[a-zA-Z0-9+_.-]+@[a-zA-Z0-9.-]+$/;
   if (!emailRe.test(email)) {
     return res.status(400).json({ message: 'Invalid email address provided.' });
   }
   console.log('artistName: ', artistName);
   try {
+    // check if user is older than 13
+    const today = new Date();
+    const dateOfBirthD = new Date(dateOfBirth);
+    let age = today.getFullYear() - dateOfBirthD.getFullYear();
+    const m = today.getMonth() - dateOfBirthD.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < dateOfBirthD.getDate())) {
+      age--;
+    }
+    if (age <= 13) {
+      return res.status(401).json({ message: 'You must be at least 13 years of age to create an account with us.' });
+    }
     const stripeCustomer = await stripeClient.createCustomer(email);
     const user = await createUser({
       email,
       artistName,
+      dateOfBirth: dateOfBirthD,
       password,
       stripeCustomerId: stripeCustomer.id,
     });
