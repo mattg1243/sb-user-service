@@ -40,6 +40,9 @@ export default class User extends Model {
   @Column({ nullable: true })
   @Length(0, 32)
   lname: string;
+
+  @Column({ nullable: false, default: new Date() })
+  dateOfBirth: Date;
   // these credit columns will reset every month
   @Column({ default: 0 })
   creditsToSpend: number;

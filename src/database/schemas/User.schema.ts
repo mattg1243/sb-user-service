@@ -1,4 +1,4 @@
-import { object, string, TypeOf, z } from 'zod';
+import { object, string, TypeOf, z, date } from 'zod';
 
 export const createUserSchema = object({
   body: object({
@@ -14,6 +14,7 @@ export const createUserSchema = object({
       .trim()
       .min(6, { message: 'Artist Name must be at least 6 characters long' })
       .max(32, { message: 'Artist Name must be 32 characters or less' }),
+    dateOfBirth: date(),
     password: string({
       required_error: 'Password is required',
     })
