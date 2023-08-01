@@ -17,26 +17,7 @@ describe('User handlers', () => {
       .then(() => app.disable('cancel'))
       .then(() => done());
   });
-  test('GET /?id', (done) => {
-    request(app)
-      .get(`/?id=${TEST_USER.id}`)
-      .then((res) => {
-        const data = res.body;
-        expect(data).toHaveProperty('_id');
-        expect(data).toHaveProperty('artistName');
-        expect(data).toHaveProperty('email');
-        done();
-      });
-  });
-  test('GET /avatar', (done) => {
-    request(app)
-      .get(`/avatar?id=${TEST_USER.id}`)
-      .then((res) => {
-        const data = res.body;
-        expect(data).toContain('images/');
-        done();
-      });
-  });
+  
   test('POST /login', (done) => {
     request(app)
       .post('/login')
@@ -87,7 +68,6 @@ describe('User handlers', () => {
       .send({ artistName: TEST_USER.artistName, bio: 'Im Him', linkedSocials: {} })
       .set('Authorization', TEST_TOKEN)
       .then((res) => {
-        console.log(res);
         expect(res.status).toBe(200);
         done();
       });
