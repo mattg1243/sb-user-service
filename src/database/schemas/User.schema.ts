@@ -44,14 +44,14 @@ export const loginUserSchema = object({
 
 // valid hostnames for social links
 export const validSocialLinkDomains = [
-  'www.youtube.com',
-  'www.twitter.com',
-  'www.spotify.com',
-  'www.linktr.ee',
-  'www.instagram.com',
+  'youtube.com',
+  'twitter.com',
+  'spotify.com',
+  'linktr.ee',
+  'instagram.com',
 ];
 const socialLinkRegex =
-  /(https?:\/\/(.+?\.)?(youtube.com|twitter.com|spotify.com|linktr.ee|instagram.com)(\/[A-Za-z0-9\-\._~:\/\?#\[\]@!$&'\(\)\*\+,;\=]*)?)/;
+  /(https?:\/\/(.+?\.)?(?:www\.)?(youtube.com|twitter.com|spotify.com|linktr.ee|instagram.com)(\/[A-Za-z0-9\-\._~:\/\?#\[\]@!$&'\(\)\*\+,;\=]*)?)/;
 export const updateUserSchema = object({
   body: object({
     artistName: string()
