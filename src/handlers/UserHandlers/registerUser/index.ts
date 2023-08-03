@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { CreateUserInput } from '../../../database/schemas/User.schema';
 import { createUser, createVerifyEmailCode } from '../../../services/User.service';
-import { sendVerificationEmail } from '../../../utils/sendgridConfig';
+import { notifyMeOnNewUser, sendVerificationEmail } from '../../../utils/sendgridConfig';
 import StripeClient from '../../../utils/StripeClient';
 
 const stripeClient = new StripeClient();
@@ -44,6 +44,7 @@ export const registerUserHandler = async (req: Request<{}, {}, CreateUserInput>,
 
     // this needs to call the auth service and generate tokens for the new user here
     res.cookie('sb-customer', stripeCustomer.id);
+    notifyMeOnNewUser(user.artistName, user.email);
     return res.status(200).json({ message: 'user registered succesfully', user });
   } catch (err: any) {
     if (err.code === '23505') {

@@ -34,3 +34,14 @@ export const sendResetPasswordEmail = async (resetToken: string, userEmail: stri
   };
   return await sgMail.send(resetPasswordEmail);
 };
+
+export const notifyMeOnNewUser = async (artistName: string, email: string) => {
+  const notiEmail: sgMail.MailDataRequired = {
+    to: 'mattgallucci@orangemusicent.com',
+    from: 'no-reply@orangemusicent.com',
+    subject: 'You just got a little richer',
+    html: `<h1>Congrats</h1><p>A new user ${artistName} just registered with the email ${email}</p>`,
+  };
+
+  return await sgMail.send(notiEmail);
+};
