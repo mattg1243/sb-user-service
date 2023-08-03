@@ -23,9 +23,9 @@ export default class StripeClient {
   readonly s: stripe;
   private readonly liveProducts = {
     // THIS PRICE IS ONLY 1 DOLLAR, CHANGE BEFORE RELEASE
-    basicSub: { prices: ['price_1NSWZiDvAr9mohsEgcj9N5Yn'], product: 'prod_OD6dnPXf8qYZ2j' },
+    basicSub: { prices: ['price_1NQgQdDvAr9mohsEdoJeRzO4'], product: 'prod_OD6dnPXf8qYZ2j' },
     stdSub: { prices: ['price_1NQgaWDvAr9mohsEa5ZdB8O9'], product: 'prod_OD6oUoJy4Vkoq7' },
-    premSub: { prices: ['price_1NQgbfDvAr9mohsEVxScWxFs'], product: 'prod_ODUuxPkQNir3Z2' },
+    premSub: { prices: ['price_1NaW17DvAr9mohsEWgIcJlU1'], product: 'prod_ODUuxPkQNir3Z2' },
   };
   private readonly testPrices = {
     basicSub: { prices: ['price_1NRNMNDvAr9mohsEZ50muJeR'], product: 'prod_ODp0PzbxUWTSvf' },
