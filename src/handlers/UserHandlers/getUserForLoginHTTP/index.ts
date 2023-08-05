@@ -31,6 +31,7 @@ export const getUserForLoginHTTP = async (req: Request, res: Response) => {
       stripeCustomerId: customerId,
       password: user.password,
       isVerified: user.verified,
+      subTier: user.subTier,
     };
     return res.status(200).json(userResponse);
   } catch (err) {
