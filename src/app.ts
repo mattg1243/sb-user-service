@@ -2,6 +2,7 @@ import express from 'express';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
+import { createClient } from 'redis';
 import 'reflect-metadata';
 import { stripeWebhookHandler } from './handlers/Stripe.handler';
 // grpc modules
@@ -14,6 +15,11 @@ import indexRouter from './routes';
 dotenv.config();
 
 export const CLIENT_HOST = process.env.CLIENT_HOST || 'http://localhost:3000';
+// create redis client
+const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
+const redisClient = createClient({ url: redisUrl });
+redisClient.on('error', (err) => console.error('Redis client error: ', err));
+export { redisClient };
 // create Express app
 const app = express();
 // middleware

@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { findUserById } from '../../../services/User.service';
+import { redisClient } from '../../../app';
 
 export const getUserHandler = async (req: Request, res: Response) => {
   const userId = req.query.id as string;

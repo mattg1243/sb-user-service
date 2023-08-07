@@ -1,4 +1,4 @@
-import { app } from './app';
+import { app, redisClient } from './app';
 import { AppDataSource, initDBConnection } from './database/dataSource';
 
 // let PORT_GRPC = process.env.PORT_GRPC || '4080';
@@ -9,6 +9,12 @@ initDBConnection().then(() => {
   // run migrations when connection is succesfu
   AppDataSource.runMigrations();
 });
+
+// connect to redis
+redisClient.connect().then(() => {
+ console.log('Redis connection established')
+})
+
 // start server
 app.listen(PORT_HTTP, () => {
   console.log(`HTTP User server listening on port ${PORT_HTTP}...`);
