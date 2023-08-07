@@ -23,7 +23,7 @@ export const resendVerificationEmailHandler = async (req: Request, res: Response
     console.log(sendEmailRes);
     return res.status(200).json({ message: 'Verification email resent' });
   } catch (err: any) {
-    console.error(err.response.body);
+    console.error(err);
     return res.status(503).json({ message: 'An error occured ' });
   }
 };
