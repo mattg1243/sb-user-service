@@ -2,7 +2,7 @@ import * as express from 'express';
 import path from 'path';
 import multer from 'multer';
 import { verifyUser } from '../middleware/verifyUser';
-import { testNotifyHandler } from '../handlers/User.handler';
+import { testNotifyHandler, testQueueHandler } from '../handlers/User.handler';
 import {
   followUserHandler,
   unfollowUserHandler,
@@ -39,6 +39,8 @@ const upload = multer({
 
 router.get('/', getUserHandler);
 router.get('/notify-test', testNotifyHandler);
+router.post('/rabbit-test', testQueueHandler);
+// router.get('/rabbit-consume-test', testConsumeQueueHandler);
 router.get('/search', searchUsersHandlers);
 router.get('/avatar', getAvatarHandler);
 router.post('/login', getUserForLoginHTTP);

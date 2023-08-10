@@ -7,6 +7,7 @@ import {
   isFollowing,
 } from '../services/UsersFollowing.service';
 import { FollowUserInput, UnfollowUserInput } from '../database/schemas/User.schema';
+import { redisClient } from '../app';
 
 // TODO: implement CustomErr class for all thrown errors
 
@@ -37,6 +38,15 @@ export const unfollowUserHandler = async (req: Request<{}, {}, UnfollowUserInput
 
   if (user && userToUnfollow) {
     try {
+      // check if either user in the cache
+
+      const cacheKeyUser = `users:user:${user.id}`;
+      const cacheKeyUnfollow = `users:user:${userToUnfollow}`;
+      const redisPromsies = [redisClient.get(cacheKeyUser), redisClient.get(cacheKeyUnfollow)];
+      const cacheEntries = await Promise.all(redisPromsies);
+      if (cacheEntries[0] || cacheEntries[1]) {
+        
+      }
       await removeFollower(user.id, userToUnfollow);
       res.status(200).json({ message: 'Follower removed' });
     } catch (err: any) {
