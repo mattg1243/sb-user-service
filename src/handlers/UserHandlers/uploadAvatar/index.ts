@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
 import { uploadFileToS3 } from '../../../bucket/upload';
 import { updateUserById } from '../../../services/User.service';
+import fs from 'fs';
+import path from 'path';
 
 export const uploadAvatarHandler = async (req: Request, res: Response) => {
   const user = req.user;
@@ -23,7 +25,9 @@ export const uploadAvatarHandler = async (req: Request, res: Response) => {
     const avatarKey = uploadAvatarRes.Key;
     const updateUserRes = updateUserById(user.id, { avatar: avatarKey });
     console.log(updateUserRes);
-    return res.status(200).json({ message: 'avatar updated successfully' });
+    fs.unlink(path.join(__dirname, '../../../uploads/', newAvatar.filename), () => {
+      return res.status(200).json({ message: 'avatar updated successfully' });
+    });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: 'an error occured while uploading your new avatar to storage' });
