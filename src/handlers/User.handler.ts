@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import { findUserByEmail } from '../services/User.service';
+import { p, c } from '../utils/Rabbitmq';
 
 import { sendUnaryData, ServerUnaryCall } from '@grpc/grpc-js';
 import { GetUserForLoginRequest, GetUserForLoginResponse } from '../proto/user_pb';
@@ -24,6 +25,35 @@ export const testNotifyHandler = async (req: Request, res: Response) => {
     return res.status(500).send();
   }
 };
+
+export const testQueueHandler = async (
+  req: Request<{}, {}, { notification: { type: 'error' | 'success' | 'info'; msg: string } }>,
+  res: Response
+) => {
+  console.log(req.body);
+  const { notification } = req.body;
+  if (!notification) {
+    return res.status(400).json({ message: 'No notification found in request body' });
+  }
+
+  try {
+    const pubRes = await p.publishNotification(notification);
+    console.log(pubRes);
+    return res.status(200).send();
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ err });
+  }
+};
+
+// export const testConsumeQueueHandler = async (req: Request, res: Response) => {
+//   try {
+//     c.consumeNotifications();
+//     return res.status(200).send();
+//   } catch (err) {
+//     console.error(err);
+//   }
+// };
 
 // TODO: create a directory dedicated to all gRPC mapped handler functions
 export const getUserForLogin = async (
