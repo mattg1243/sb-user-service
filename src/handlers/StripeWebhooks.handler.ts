@@ -1,6 +1,7 @@
 import Stripe from 'stripe';
 import { getUserByStripeCustomerId, addCredits } from '../services/User.service';
 import StripeClient from '../utils/StripeClient';
+import { BASIC_SUB_MONTHLY_CREDITS, PREM_SUB_MONTHLY_CREDITS, STD_SUB_MONTHLY_CREDITS } from '../config';
 
 const stripeClient = new StripeClient();
 
@@ -84,15 +85,15 @@ export namespace InvoiceEventHandlers {
         const products = stripeClient.getProducts();
         switch (subscription.items.data[0].price.product) {
           case products.basicSub.product:
-            addCredits(user._id, 3);
+            addCredits(user._id, BASIC_SUB_MONTHLY_CREDITS);
             break;
 
           case products.stdSub.product:
-            addCredits(user._id, 7);
+            addCredits(user._id, STD_SUB_MONTHLY_CREDITS);
             break;
 
           case products.premSub.product:
-            addCredits(user._id, 15);
+            addCredits(user._id, PREM_SUB_MONTHLY_CREDITS);
             break;
         }
       }
