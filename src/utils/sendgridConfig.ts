@@ -45,3 +45,14 @@ export const notifyMeOnNewUser = async (artistName: string, email: string) => {
 
   return await sgMail.send(notiEmail);
 };
+
+export const notifyMeOnNewSub = async (email: string, subTier: string) => {
+  const notiEmail: sgMail.MailDataRequired = {
+    to: 'mattgallucci@orangemusicent.com',
+    from: 'no-reply@orangemusicent.com',
+    subject: 'Thats money dood 🤑',
+    html: `<h1>Congrats</h1><p>User with email ${email} just bought a ${subTier} subscription</p>`,
+  };
+
+  return await sgMail.send(notiEmail);
+};
