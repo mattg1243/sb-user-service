@@ -8,6 +8,7 @@ import {
 } from '../services/UsersFollowing.service';
 import { FollowUserInput, UnfollowUserInput } from '../database/schemas/User.schema';
 import { redisClient } from '../app';
+import { p } from '../utils/Rabbitmq';
 
 // TODO: implement CustomErr class for all thrown errors
 
@@ -20,6 +21,7 @@ export const followUserHandler = async (req: Request<{}, {}, FollowUserInput>, r
   if (user && userToFollow) {
     try {
       await addFollower(user.id, userToFollow);
+      p.publishNotification({ ctx: 'follow', user_id: userToFollow, message: `${user.artistName} now follows you` });
       res.status(200).json({ message: 'Follower added' });
     } catch (err: any) {
       console.error(err);
@@ -45,7 +47,6 @@ export const unfollowUserHandler = async (req: Request<{}, {}, UnfollowUserInput
       const redisPromsies = [redisClient.get(cacheKeyUser), redisClient.get(cacheKeyUnfollow)];
       const cacheEntries = await Promise.all(redisPromsies);
       if (cacheEntries[0] || cacheEntries[1]) {
-        
       }
       await removeFollower(user.id, userToUnfollow);
       res.status(200).json({ message: 'Follower removed' });

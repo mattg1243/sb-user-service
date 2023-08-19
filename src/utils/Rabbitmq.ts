@@ -6,6 +6,14 @@ const queueName = 'noti-queue';
 
 const qUrl = process.env.Q_URL || 'amqp://localhost:5672';
 
+interface INotificationToPublish {
+  title?: string;
+  // noti type
+  ctx: string;
+  message: string;
+  user_id: string;
+}
+
 export class Producer {
   channel: Channel;
 
@@ -17,7 +25,7 @@ export class Producer {
     });
   }
 
-  async publishNotification(noti: { type: 'error' | 'success' | 'info'; msg: string }) {
+  async publishNotification(noti: INotificationToPublish) {
     try {
       await this.channel.assertExchange(exchName, 'direct');
       this.channel.publish(exchName, routingKey, Buffer.from(JSON.stringify(noti)));

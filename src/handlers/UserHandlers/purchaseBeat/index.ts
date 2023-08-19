@@ -5,6 +5,7 @@ import { AppDataSource } from '../../../database/dataSource';
 import User from '../../../database/models/User.entity';
 import Transaction from '../../../database/models/Transaction.model';
 import License from '../../../database/models/License.entity';
+import { p } from '../../../utils/Rabbitmq';
 
 export const purchaseBeatHandler = async (
   req: Request<{}, {}, { userId: string; beat: string; seller: string; licenseType: 'limited' | 'unlimited' }>,
@@ -72,6 +73,12 @@ export const purchaseBeatHandler = async (
         const saveTxPromse = txRepo.save(tx);
         const saveLicensePromise = licenseRepo.save(license);
         await Promise.all([saveBuyerPromise, saveSellerPromise, saveTxPromse, saveLicensePromise]);
+        // send notification to seller
+        p.publishNotification({
+          ctx: 'download',
+          user_id: sellerObj._id,
+          message: `${buyerObj.artistName} just downloaded one of your beats`,
+        });
         return res.status(200).json({ message: 'Transaction completed successfully' });
       } catch (err) {
         console.error(err);
