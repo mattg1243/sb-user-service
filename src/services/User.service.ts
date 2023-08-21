@@ -37,7 +37,15 @@ export const deleteVerifyEmailCode = async (id: string) => {
 export const findUserByEmail = async (email: string, select?: {}) => {
   return await userRepository.findOne({
     where: { email: email },
-    select: { _id: true, email: true, artistName: true, password: true, verified: true, stripeCustomerId: true },
+    select: {
+      _id: true,
+      email: true,
+      artistName: true,
+      password: true,
+      verified: true,
+      stripeCustomerId: true,
+      subTier: true,
+    },
   });
 };
 
