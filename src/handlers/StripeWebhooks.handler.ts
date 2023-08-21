@@ -87,16 +87,22 @@ export namespace InvoiceEventHandlers {
         switch (subscription.items.data[0].price.product) {
           case products.basicSub.product:
             addCredits(user._id, BASIC_SUB_MONTHLY_CREDITS);
+            user.subTier = 'basic';
+            await user.save();
             notifyMeOnNewSub(user.email, 'basic');
             break;
 
           case products.stdSub.product:
             addCredits(user._id, STD_SUB_MONTHLY_CREDITS);
+            user.subTier = 'std';
+            await user.save();
             notifyMeOnNewSub(user.email, 'standard');
             break;
 
           case products.premSub.product:
             addCredits(user._id, PREM_SUB_MONTHLY_CREDITS);
+            user.subTier = 'prem';
+            await user.save();
             notifyMeOnNewSub(user.email, 'premium');
             break;
         }
