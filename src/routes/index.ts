@@ -39,7 +39,7 @@ const upload = multer({
 
 router.get('/', getUserHandler);
 router.get('/notify-test', testNotifyHandler);
-router.post('/rabbit-test', testQueueHandler);
+router.get('/rabbit-test', testQueueHandler);
 // router.get('/rabbit-consume-test', testConsumeQueueHandler);
 router.get('/search', searchUsersHandlers);
 router.get('/avatar', getAvatarHandler);

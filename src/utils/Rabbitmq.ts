@@ -8,7 +8,7 @@ const qUrl = process.env.Q_URL || 'amqp://localhost:5672';
 
 interface INotificationToPublish {
   title?: string;
-  // noti type
+  reference?: string;
   ctx: string;
   message: string;
   user_id: string;
