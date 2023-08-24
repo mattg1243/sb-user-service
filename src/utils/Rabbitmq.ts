@@ -10,7 +10,7 @@ interface INotificationToPublish {
   title?: string;
   reference?: string;
   ctx: string;
-  message: string;
+  msg: string;
   user_id: string;
 }
 

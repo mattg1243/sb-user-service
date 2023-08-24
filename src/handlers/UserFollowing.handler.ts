@@ -21,7 +21,7 @@ export const followUserHandler = async (req: Request<{}, {}, FollowUserInput>, r
   if (user && userToFollow) {
     try {
       await addFollower(user.id, userToFollow);
-      p.publishNotification({ ctx: 'follow', user_id: userToFollow, message: `${user.artistName} now follows you` });
+      p.publishNotification({ ctx: 'follow', user_id: userToFollow, msg: `${user.artistName} now follows you` });
       res.status(200).json({ message: 'Follower added' });
     } catch (err: any) {
       console.error(err);

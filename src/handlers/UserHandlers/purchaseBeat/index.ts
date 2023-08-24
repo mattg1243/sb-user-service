@@ -77,7 +77,7 @@ export const purchaseBeatHandler = async (
         p.publishNotification({
           ctx: 'download',
           user_id: sellerObj._id,
-          message: `${buyerObj.artistName} just downloaded one of your beats`,
+          msg: `${buyerObj.artistName} just downloaded one of your beats`,
         });
         return res.status(200).json({ message: 'Transaction completed successfully' });
       } catch (err) {

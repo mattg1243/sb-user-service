@@ -37,7 +37,11 @@ export const testQueueHandler = async (
   }
 
   try {
-    const pubRes = await p.publishNotification({ ctx: 'follow', message: 'a new user just followed you', user_id: '1234asdf' });
+    const pubRes = await p.publishNotification({
+      ctx: 'follow',
+      msg: 'a new user just followed you',
+      user_id: '1234asdf',
+    });
     console.log(pubRes);
     return res.status(200).send();
   } catch (err) {
