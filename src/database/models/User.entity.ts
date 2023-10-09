@@ -90,6 +90,12 @@ export default class User extends Model {
     | 'canceled'
     | 'unpaid'
     | 'paused';
+  // promo code users can share for people to sub with
+  @Column({ nullable: true, select: false })
+  subRefCode: string;
+  // id of referring user if any
+  @Column({ nullable: true, select: false })
+  subReferrer: string;
   // email verified?
   @Column({ default: false })
   verified: boolean;
