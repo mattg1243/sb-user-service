@@ -30,6 +30,8 @@ import {
   getUserForLoginHTTP,
 } from '../handlers/UserHandlers';
 import { createStripeConnectAcctHandler, stripeCustomerPortalHandler } from '../handlers/Stripe.handler';
+import { getUserRefCode } from '../handlers/UserHandlers/getUserRefCode';
+import { setUserRefCode } from '../handlers/UserHandlers/setUserRefCode';
 
 const router = express.Router();
 
@@ -55,6 +57,8 @@ router.post('/reset-password', resetPasswordHandler);
 router.post('/change-password', changePasswordHandler);
 router.post('/create-subscription', createSubscriptionHandler);
 router.get('/customer-portal', stripeCustomerPortalHandler);
+// for internal use only
+router.get('/payout-spreadsheets');
 // PROTECTED
 router.post('/update', verifyUser, updateUserHandler);
 router.post('/avatar', verifyUser, upload.single('newAvatar'), uploadAvatarHandler);
@@ -66,6 +70,8 @@ router.post('/create-stripe-connect-acct', verifyUser, createStripeConnectAcctHa
 router.get('/credits-balance', verifyUser, getCreditsBalanceHandler);
 router.get('/credits-earned', verifyUser, getEarnedCreditsHandler);
 router.get('/licenses', getLicensedBeatshandler);
+router.get('/sub-ref-code', verifyUser, getUserRefCode);
+router.post('/sub-ref-code', verifyUser, setUserRefCode);
 
 router.get(
   '*',
