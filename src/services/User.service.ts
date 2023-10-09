@@ -3,6 +3,7 @@ import EmailVerify from '../database/models/EmailVerify.entity';
 import { CreateUserInput } from '../database/schemas/User.schema';
 import { AppDataSource } from '../database/dataSource';
 import CreditAllocation from '../database/models/CreditAllocation.model';
+import { nanoid } from 'nanoid';
 
 // TODO: implement CustomErr class for all thrown errors
 
@@ -82,6 +83,30 @@ export const findUserPasswordResetToken = async (userEmail: string) => {
 
 export const changeUserPassword = async (email: string, newPasswordHash: string) => {
   return await userRepository.update({ email: email }, { password: newPasswordHash });
+};
+
+export const findUserSubRefCode = async (userId: string) => {
+  const user = await userRepository.findOne({ where: { _id: userId }, select: { subRefCode: true } });
+  return user?.subRefCode;
+};
+
+export const findUserBySubRefCode = async (refCode: string) => {
+  return await userRepository.findOne({ where: { subRefCode: refCode } });
+};
+
+export const findUserSubReferrer = async (userId: string) => {
+  const user = await userRepository.findOne({ where: { _id: userId }, select: { subReferrer: true } });
+  return user?.subReferrer;
+};
+
+export const createUserSubRefCode = async (userId: string) => {
+  const refCode = nanoid(10);
+  await userRepository.update({ _id: userId }, { subRefCode: refCode });
+  return refCode;
+};
+
+export const saveUserSubReferral = async (userId: string, referringUserId: string) => {
+  return await userRepository.update({ _id: userId }, { subReferrer: referringUserId });
 };
 
 export const addCredits = async (userId: string, creditsToAdd: number) => {
