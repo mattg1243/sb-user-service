@@ -32,6 +32,7 @@ import {
 import { createStripeConnectAcctHandler, stripeCustomerPortalHandler } from '../handlers/Stripe.handler';
 import { getUserRefCode } from '../handlers/UserHandlers/getUserRefCode';
 import { setUserRefCode } from '../handlers/UserHandlers/setUserRefCode';
+import { getUsersHandler } from '../handlers/UserHandlers/getUsers';
 
 const router = express.Router();
 
@@ -40,6 +41,7 @@ const upload = multer({
 });
 
 router.get('/', getUserHandler);
+router.get('/users', getUsersHandler);
 router.get('/notify-test', testNotifyHandler);
 router.get('/rabbit-test', testQueueHandler);
 // router.get('/rabbit-consume-test', testConsumeQueueHandler);

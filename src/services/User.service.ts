@@ -4,6 +4,7 @@ import { CreateUserInput } from '../database/schemas/User.schema';
 import { AppDataSource } from '../database/dataSource';
 import CreditAllocation from '../database/models/CreditAllocation.model';
 import { nanoid } from 'nanoid';
+import { FindOptionsOrder } from 'typeorm';
 
 // TODO: implement CustomErr class for all thrown errors
 
@@ -56,6 +57,10 @@ export const findUserById = async (userId: string) => {
 
 export const findUser = async (query: Object) => {
   return await userRepository.findOneBy(query);
+};
+
+export const getUsers = async (take: number, skip: number, sort?: FindOptionsOrder<User>) => {
+  return await userRepository.find({ take, skip, order: sort });
 };
 
 export const searchAllUsers = async (query: string) => {
