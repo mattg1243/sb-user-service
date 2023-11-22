@@ -15,6 +15,7 @@ import indexRouter from './routes';
 dotenv.config();
 
 export const CLIENT_HOST = process.env.CLIENT_HOST || 'http://localhost:3000';
+export const CNTRL_HOST = process.env.CNTRL_HOST || 'http://localhost:3001';
 // create redis client
 const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
 const redisClient = createClient({ url: redisUrl });
@@ -25,7 +26,7 @@ export { redisClient };
 // create Express app
 const app = express();
 // middleware
-app.use(cors({ credentials: true, origin: CLIENT_HOST }));
+app.use(cors({ credentials: true, origin: [CNTRL_HOST, CLIENT_HOST] }));
 // webhook route before json middleware
 app.post('/stripe-webhook', express.raw({ type: '*/*' }), stripeWebhookHandler);
 app.use(express.json());
