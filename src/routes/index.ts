@@ -33,6 +33,7 @@ import { createStripeConnectAcctHandler, stripeCustomerPortalHandler } from '../
 import { getUserRefCode } from '../handlers/UserHandlers/getUserRefCode';
 import { setUserRefCode } from '../handlers/UserHandlers/setUserRefCode';
 import { getUsersHandler } from '../handlers/UserHandlers/getUsers';
+import { adminSearchUsersHandlers } from '../handlers/UserHandlers/adminSearchUsers';
 
 const router = express.Router();
 
@@ -74,7 +75,8 @@ router.get('/credits-earned', verifyUser, getEarnedCreditsHandler);
 router.get('/licenses', getLicensedBeatshandler);
 router.get('/sub-ref-code', verifyUser, getUserRefCode);
 router.post('/sub-ref-code', verifyUser, setUserRefCode);
-
+// only hit from cntrl admin panel
+router.get('/admin-search', adminSearchUsersHandlers);
 router.get(
   '*',
   (res, response, next) => {

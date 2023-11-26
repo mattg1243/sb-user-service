@@ -71,6 +71,16 @@ export const searchAllUsers = async (query: string) => {
     .getMany();
 };
 
+export const searchAllUsersAdmin = async (query: string) => {
+  const formattedQuery = query.trim().replace(/ /g, ' & ');
+  return await userRepository
+    .createQueryBuilder('user')
+    .where(`to_tsvector('simple', user.artistName || ' ' || user.email) @@ to_tsquery('simple', :query)`, {
+      query: `${formattedQuery}:*`,
+    })
+    .getMany();
+};
+
 export const updateUserById = async (userId: string, updatedFields: {}) => {
   return await userRepository.update({ _id: userId }, updatedFields);
 };
