@@ -34,6 +34,7 @@ import { getUserRefCode } from '../handlers/UserHandlers/getUserRefCode';
 import { setUserRefCode } from '../handlers/UserHandlers/setUserRefCode';
 import { getUsersHandler } from '../handlers/UserHandlers/getUsers';
 import { adminSearchUsersHandlers } from '../handlers/UserHandlers/adminSearchUsers';
+import { connectAccountHandler } from '../handlers/PayPal.handler';
 
 const router = express.Router();
 
@@ -56,6 +57,8 @@ router.get('/isfollowing', isFollowingHandler);
 router.get('/verify-email', verifyEmailHandler);
 router.get('/resend-verification-email', resendVerificationEmailHandler);
 router.get('/stripe-portal', createStripePortalSessionHandler);
+router.get('/paypal-connect-link', verifyUser, connectAccountHandler);
+router.get('/paypal-connect', verifyUser)
 router.post('/reset-password', resetPasswordHandler);
 router.post('/change-password', changePasswordHandler);
 router.post('/create-subscription', createSubscriptionHandler);
