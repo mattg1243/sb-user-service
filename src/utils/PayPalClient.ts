@@ -1,5 +1,6 @@
 import axios from 'axios';
 import dotenv from 'dotenv';
+import { CLIENT_HOST } from '../app';
 
 dotenv.config();
 
@@ -52,13 +53,16 @@ export default class PayPalClient {
               integration_method: 'PAYPAL',
               integration_type: 'THIRD_PARTY',
               third_party_details: {
-                features: ['PAYOUTS', 'PAYMENT'],
+                features: ['PAYMENT', 'REFUND'],
               },
             },
           },
         },
       ],
       products: ['EXPRESS_CHECKOUT'],
+      partner_config_override: {
+        return_url: `${CLIENT_HOST}/app/account?paypal-connect=success`,
+      },
       legal_consents: [
         {
           type: 'SHARE_DATA_CONSENT',
@@ -71,9 +75,13 @@ export default class PayPalClient {
       const res = await axios.post(`${API_URL}/v2/customer/partner-referrals`, reqJson, {
         headers: { Authorization: `Bearer ${this.token}` },
       });
-      console.log(res.data);
+      return res.data;
     } catch (err) {
       console.error(err);
     }
+  }
+
+  async sendPayout(merchantId: string, amount: number) {
+    console.log('sending payout of amount' + amount + 'to user' + merchantId);
   }
 }
