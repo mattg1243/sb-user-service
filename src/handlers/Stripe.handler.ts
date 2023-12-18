@@ -125,7 +125,7 @@ export const stripeConnectPortalHandler = async (req: Request, res: Response) =>
     // send to client
   } catch (err) {
     console.error(err);
-    return res.json({ message: 'An error occured creating a Strip Connect account portal session', err });
+    return res.json({ message: 'An error occured creating a Stripe Connect account portal session', err });
   }
 };
 
@@ -147,6 +147,7 @@ export const createStripeConnectAcctHandler = async (req: Request, res: Response
       // create the account
       const account = await stripeClient.s.accounts.create({ type: 'express' });
       userObj.stripeConnectId = account.id;
+      userObj.payoutMethod = 'stripe'
       await userObj.save();
       // create a portal session to redirect the user to
       const accountLink = await stripeClient.s.accountLinks.create({
