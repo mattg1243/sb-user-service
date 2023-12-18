@@ -92,6 +92,9 @@ export default class User extends Model {
     | 'canceled'
     | 'unpaid'
     | 'paused';
+
+  @Column({ default: '' })
+  paypalMerchantId: string;
   // promo code users can share for people to sub with
   @Column({ nullable: true, select: false })
   subRefCode: string;
