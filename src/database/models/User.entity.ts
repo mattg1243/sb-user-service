@@ -61,6 +61,8 @@ export default class User extends Model {
 
   @Column({ default: 0 })
   creditsAcquired: number;
+  @Column({ default: '' })
+  payoutMethod: 'stripe' | 'paypal';
   // this one will not reset
   @Column({ default: 0 })
   totalCreditsAcquired: number;

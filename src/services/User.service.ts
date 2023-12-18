@@ -59,7 +59,7 @@ export const findUser = async (query: Object) => {
   return await userRepository.findOneBy(query);
 };
 
-export const getUsers = async (take: number, skip: number, sort?: FindOptionsOrder<User>) => {
+export const getUsers = async (take?: number, skip?: number, sort?: FindOptionsOrder<User>) => {
   return await userRepository.find({ take, skip, order: sort });
 };
 
