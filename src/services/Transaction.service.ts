@@ -66,6 +66,9 @@ export namespace TransactionServices {
    * Gets all transactions that fall within a given date range
    */
   export const getTransactionsInDateRange = async (start: Date, end: Date) => {
-    return await transactionRepository.find({ where: { created_at: Between(start, end) } });
+    return await transactionRepository.find({
+      where: { created_at: Between(start, end) },
+      relations: { sellingUser: true },
+    });
   };
 }
