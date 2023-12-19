@@ -35,11 +35,24 @@ import { setUserRefCode } from '../handlers/UserHandlers/setUserRefCode';
 import { getUsersHandler } from '../handlers/UserHandlers/getUsers';
 import { adminSearchUsersHandlers } from '../handlers/UserHandlers/adminSearchUsers';
 import { getConnectAccountUrlHandler, saveMerchantIdHandler } from '../handlers/PayPal.handler';
+import { generatePayoutSummaries } from '../cron/payout';
 
 const router = express.Router();
 
 const upload = multer({
   dest: path.join(__dirname, '../uploads'),
+});
+
+// TESTING
+router.get('/payouts', async (req: express.Request, res: express.Response) => {
+  const ret = await generatePayoutSummaries();
+  if (ret) {
+    console.log('transactions: ', JSON.stringify(ret.transactionMap));
+    console.log('summaries: ', JSON.stringify(ret.summaryMap));
+  } else {
+    console.log('undefined return values');
+  }
+  return res.status(200).send();
 });
 
 router.get('/', getUserHandler);
