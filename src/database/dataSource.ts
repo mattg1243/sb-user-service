@@ -6,6 +6,7 @@ import EmailVerify from './models/EmailVerify.entity';
 import Transaction from './models/Transaction.model';
 import License from './models/License.entity';
 import CreditAllocation from './models/CreditAllocation.model';
+import Payout from './models/Payout.entity';
 
 dotenv.config();
 
@@ -26,7 +27,7 @@ export const AppDataSource = new DataSource({
   database: DB_NAME,
   synchronize: true,
   logging: false,
-  entities: [User, UsersFollowing, EmailVerify, Transaction, License, CreditAllocation],
+  entities: [User, UsersFollowing, EmailVerify, Transaction, License, CreditAllocation, Payout],
   subscribers: [],
   migrations: [],
   ssl: dev ? false : true,

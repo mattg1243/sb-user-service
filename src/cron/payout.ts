@@ -5,7 +5,7 @@ import axios from 'axios';
 import { BEATS_HOST } from '../handlers/User.handler';
 import { TransactionServices } from '../services/Transaction.service';
 
-const CREDIT_VAL = 6.50;
+const CREDIT_VAL = 6.5;
 
 export const payoutTask = cron.schedule('0 0 1 * *', () => {});
 
@@ -49,6 +49,18 @@ const calculatePayouts = async () => {
         // const beat
       });
     });
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+const calculatePayoutsV2 = async () => {
+  const today = new Date();
+  const lastOfLastMonth = new Date(today.getFullYear(), today.getMonth(), 0);
+  const firstOfLastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+  try {
+    const transactions = await TransactionServices.getTransactionsInDateRange(firstOfLastMonth, lastOfLastMonth);
+    
   } catch (err) {
     console.error(err);
   }
