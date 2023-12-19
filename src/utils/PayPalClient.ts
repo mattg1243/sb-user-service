@@ -6,7 +6,7 @@ dotenv.config();
 
 const dev = process.env.NODE_ENV !== 'production';
 
-const API_URL = 'https://api-m.sandbox.paypal.com';
+const API_URL = dev ? 'https://api-m.sandbox.paypal.com' : 'https://api-m.paypal.com';
 const CLIENT_ID = process.env.PAYPAL_CLIENT_ID;
 const CLIENT_SECRET = process.env.PAYPAL_SECRET;
 
