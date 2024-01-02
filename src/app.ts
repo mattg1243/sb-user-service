@@ -11,6 +11,8 @@ import { UserService } from './proto/user_grpc_pb';
 import { getUserForLogin } from './handlers/User.handler';
 // routes
 import indexRouter from './routes';
+import adminRouter from './routes/admin';
+import { verifyAdmin } from './middleware/verifyAdmin';
 
 dotenv.config();
 
@@ -33,7 +35,8 @@ app.use(express.json());
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 app.use(cookieParser());
 // routes
-app.use(indexRouter);
+app.use('/admin', verifyAdmin, adminRouter);
+app.use('/', indexRouter);
 
 const startGrpcServer = (port: string) => {
   const server = new Server();
