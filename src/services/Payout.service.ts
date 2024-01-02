@@ -21,7 +21,17 @@ interface IGetPayoutsArg {
 export const getPayouts = async (args?: IGetPayoutsArg) => {
   return await payoutRepository.find({
     relations: { user: true },
-    select: { ...args?.select, user: { _id: true, artistName: true, payoutMethod: true } },
+    select: {
+      ...args?.select,
+      user: {
+        _id: true,
+        artistName: true,
+        payoutMethod: true,
+        email: true,
+        stripeConnectId: true,
+        paypalMerchantId: true,
+      },
+    },
     where: args?.where,
   });
 };
