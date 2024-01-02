@@ -59,6 +59,10 @@ export const findUser = async (query: Object) => {
   return await userRepository.findOneBy(query);
 };
 
+export const findUserByArtistName = async (artistName: string) => {
+  return await userRepository.findOneBy({ artistName });
+};
+
 export const findUsers = async (userIds: string[], select?: FindOptionsSelect<User>) => {
   return await userRepository.find({ where: { _id: In(userIds) }, select: select || {} });
 };

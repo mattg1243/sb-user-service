@@ -80,9 +80,9 @@ export namespace TransactionServices {
    */
   export const getTransactionsInDateRange = async (start: Date, end: Date, query?: IGetTransactionsArg) => {
     return await transactionRepository.find({
+      relations: { sellingUser: true, payout: true },
+      select: { ...query?.select, sellingUser: { _id: true, artistName: true }, payout: { _id: true } },
       where: { ...query?.where, created_at: Between(start, end) },
-      relations: { sellingUser: true },
-      select: { ...query?.select, sellingUser: { _id: true, artistName: true } },
     });
   };
 }
