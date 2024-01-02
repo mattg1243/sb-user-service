@@ -35,6 +35,35 @@ export const sendResetPasswordEmail = async (resetToken: string, userEmail: stri
   return await sgMail.send(resetPasswordEmail);
 };
 
+export const sendPayoutSuccessfulEmail = async (artistName: string, userEmail: string) => {
+  const html = `<h1>It's only up from here 💸</h1><h3>Thanks for working with us ${artistName}</h3>`;
+  const email = makeMailData(userEmail, 'Your funds are on the way!', html);
+  return await sgMail.send(email);
+};
+
+export const sendPayoutErrorEmail = async (artistName: string, userEmail: string, reason: string) => {
+  const html = `<h1>There was an error sending your payout</h1><p>${reason}</p>`;
+  const email = makeMailData(userEmail, 'Something went wrong :(', html);
+  return await sgMail.send(email);
+};
+
+/**
+ * Returns an MailDataRequired object
+ * @param to - users email
+ * @param subject
+ * @param html
+ * @returns
+ */
+const makeMailData = (to: string, subject: string, html: string): sgMail.MailDataRequired => {
+  return {
+    to,
+    subject,
+    from: 'no-reply@orangemusicent.com',
+    html,
+  };
+};
+
+// only sent internally
 export const notifyMeOnNewUser = async (artistName: string, email: string) => {
   const notiEmail: sgMail.MailDataRequired = {
     to: 'mattgallucci@orangemusicent.com',
