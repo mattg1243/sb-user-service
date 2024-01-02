@@ -18,7 +18,6 @@ const stripeConfig: stripe.StripeConfig = {
   typescript: true,
 };
 
-// this should be rewrtitten as a namespace, eventually
 export default class StripeClient {
   readonly s: stripe;
   private readonly liveProducts = {
@@ -143,5 +142,19 @@ export default class StripeClient {
       revAmount += obj.net;
     });
     return revAmount / 100;
+  }
+
+  async sendPayout(amount: number, stripeId: string, description: string) {
+    try {
+      const payout = this.s.transfers.create({
+        amount,
+        currency: 'usd',
+        destination: stripeId,
+        description,
+      });
+      return payout;
+    } catch (err) {
+      console.error(err);
+    }
   }
 }
