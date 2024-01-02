@@ -36,23 +36,13 @@ import { getUsersHandler } from '../handlers/UserHandlers/getUsers';
 import { adminSearchUsersHandlers } from '../handlers/UserHandlers/adminSearchUsers';
 import { getConnectAccountUrlHandler, saveMerchantIdHandler } from '../handlers/PayPal.handler';
 import { generatePayoutSummaries } from '../cron/payout';
+import { createTransactionHandler, getTransactionsHandler } from '../handlers/TransactionHandlers';
+import { getPayoutsHandler } from '../handlers/PayoutHandlers';
 
 const router = express.Router();
 
 const upload = multer({
   dest: path.join(__dirname, '../uploads'),
-});
-
-// TESTING
-router.get('/payouts', async (req: express.Request, res: express.Response) => {
-  const ret = await generatePayoutSummaries();
-  if (ret) {
-    console.log('transactions: ', JSON.stringify(ret.transactionMap));
-    console.log('summaries: ', JSON.stringify(ret.summaryMap));
-  } else {
-    console.log('undefined return values');
-  }
-  return res.status(200).send();
 });
 
 router.get('/', getUserHandler);
@@ -77,7 +67,7 @@ router.post('/change-password', changePasswordHandler);
 router.post('/create-subscription', createSubscriptionHandler);
 router.get('/customer-portal', stripeCustomerPortalHandler);
 // for internal use only
-router.get('/payout-spreadsheets');
+router.get('/make-payouts');
 // PROTECTED
 router.post('/update', verifyUser, updateUserHandler);
 router.post('/avatar', verifyUser, upload.single('newAvatar'), uploadAvatarHandler);
@@ -92,7 +82,11 @@ router.get('/licenses', getLicensedBeatshandler);
 router.get('/sub-ref-code', verifyUser, getUserRefCode);
 router.post('/sub-ref-code', verifyUser, setUserRefCode);
 // only hit from cntrl admin panel
+// TODO move these to the admin router file
 router.get('/admin-search', adminSearchUsersHandlers);
+router.get('/transactions', getTransactionsHandler);
+router.post('/transaction', createTransactionHandler);
+
 router.get(
   '*',
   (res, response, next) => {
