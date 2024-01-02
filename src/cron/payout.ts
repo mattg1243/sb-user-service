@@ -225,11 +225,11 @@ export const sendPayouts = async (ids?: string[]) => {
                 `error paying out user ${payout.user.artistName}: no paypalMerchantId, paymentMethod == paypal`
               );
               // send error email
-              sendPayoutErrorEmail(
-                payout.user.artistName,
-                payout.user.email,
-                `We see you prefer to be paid out via PayPal but we don't seem to have your PayPal account on file. Please try connecting from the account page.`
-              );
+              // sendPayoutErrorEmail(
+              //   payout.user.artistName,
+              //   payout.user.email,
+              //   `We see you prefer to be paid out via PayPal but we don't seem to have your PayPal account on file. Please try connecting from the account page.`
+              // );
               continue;
             }
             // send
@@ -242,11 +242,11 @@ export const sendPayouts = async (ids?: string[]) => {
                 `error paying out user ${payout.user.artistName}: no stripeConnectId, paymentMethod == stripe`
               );
               // send error email
-              sendPayoutErrorEmail(
-                payout.user.artistName,
-                payout.user.email,
-                `We see you prefer to be paid out via Stripe but we don't seem to have your Stripe account on file. Please try connecting from the account page.`
-              );
+              // sendPayoutErrorEmail(
+              //   payout.user.artistName,
+              //   payout.user.email,
+              //   `We see you prefer to be paid out via Stripe but we don't seem to have your Stripe account on file. Please try connecting from the account page.`
+              // );
               continue;
             }
             const payoutRes = await stripeClient.sendPayout(
@@ -261,7 +261,7 @@ export const sendPayouts = async (ids?: string[]) => {
             payout.paid = true;
             await payout.save();
             // send success email
-            sendPayoutSuccessfulEmail(payout.user.artistName, payout.user.email);
+            // sendPayoutSuccessfulEmail(payout.user.artistName, payout.user.email);
 
             break;
 
@@ -269,13 +269,13 @@ export const sendPayouts = async (ids?: string[]) => {
             console.error(
               `error: invalid payment method detected when making payouts:\nmethod == ${method} for user ${payout.user.artistName}`
             );
-            sendPayoutErrorEmail(payout.user.artistName, payout.user.email, `We're looking into it`);
+            // sendPayoutErrorEmail(payout.user.artistName, payout.user.email, `We're looking into it`);
             break;
         }
         // send email with summary attached
       } catch (err) {
         console.error(err);
-        sendPayoutErrorEmail(payout.user.artistName, payout.user.email, `We're looking into it`);
+        // sendPayoutErrorEmail(payout.user.artistName, payout.user.email, `We're looking into it`);
       }
     }
     return await getPayouts();
