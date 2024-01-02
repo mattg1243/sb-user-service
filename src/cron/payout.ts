@@ -7,8 +7,12 @@ import { TransactionServices } from '../services/Transaction.service';
 import Transaction from '../database/models/Transaction.model';
 import path from 'path';
 import fs from 'fs';
-import { createPayout } from '../services/Payout.service';
+import { createPayout, getPayouts } from '../services/Payout.service';
 import Payout from '../database/models/Payout.entity';
+import StripeClient from '../utils/StripeClient';
+import PayPalClient from '../utils/PayPalClient';
+import { FindOptionsWhere, In } from 'typeorm';
+import { sendPayoutErrorEmail, sendPayoutSuccessfulEmail } from '../utils/sendgridConfig';
 
 const CREDIT_VAL = 6.5;
 
@@ -30,7 +34,7 @@ interface IBeatRes {
   artistName: string;
 }
 
-
+// global date and money stuff
 const today = new Date();
 const lastOfLastMonth = new Date(today.getFullYear(), today.getMonth(), 0);
 const firstOfLastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
@@ -40,6 +44,10 @@ const moneyFormatter = new Intl.NumberFormat('en-us', {
   currency: 'USD',
 });
 let totalOwedToAll = 0;
+
+// payment processor clients
+const stripeClient = new StripeClient();
+const paypalClient = new PayPalClient();
 
 // TODO break this function up
 export const generatePayoutSummaries = async () => {
@@ -181,49 +189,98 @@ const writeSummaryFile = async (summary: [string, ISummaryRow[]]) => {
   }
 };
 
-export const sendPayouts = async (payoutDir: string) => {
-  // loop over the files
-  // calculate total amount owed to user
-  // determine payout method
-  // send payment
-  // send email with summary attached
+/**
+ * Attempts to send out any unpaid payouts if supplied with no args
+ * and specified payouts if supplied with an array of Ids
+ * @param ids - Array of payout db Ids
+ */
+export const sendPayouts = async (ids?: string[]) => {
+  try {
+    let whereArgs: FindOptionsWhere<Payout> = {
+      paid: false,
+    };
+    // check if ids have been supplied
+    if (ids) {
+      whereArgs._id = In(ids);
+    }
+    // query payouts
+    const payouts = await getPayouts({
+      where: { paid: false },
+    });
+    console.log(payouts[0].user);
+    for (const payout of payouts) {
+      try {
+        // determine payout method
+        const method = payout.user.payoutMethod;
+        if (!method) {
+          // send email telling them they have funds waiting
+          continue;
+        }
+        // send payment
+        switch (method) {
+          case 'paypal':
+            const paypalId = payout.user.paypalMerchantId;
+            if (!paypalId) {
+              console.error(
+                `error paying out user ${payout.user.artistName}: no paypalMerchantId, paymentMethod == paypal`
+              );
+              // send error email
+              sendPayoutErrorEmail(
+                payout.user.artistName,
+                payout.user.email,
+                `We see you prefer to be paid out via PayPal but we don't seem to have your PayPal account on file. Please try connecting from the account page.`
+              );
+              continue;
+            }
+            // send
+            // send success email - "Your funds are on the way!"
+            break;
+          case 'stripe':
+            const stripeId = payout.user.stripeConnectId;
+            if (!stripeId) {
+              console.error(
+                `error paying out user ${payout.user.artistName}: no stripeConnectId, paymentMethod == stripe`
+              );
+              // send error email
+              sendPayoutErrorEmail(
+                payout.user.artistName,
+                payout.user.email,
+                `We see you prefer to be paid out via Stripe but we don't seem to have your Stripe account on file. Please try connecting from the account page.`
+              );
+              continue;
+            }
+            const payoutRes = await stripeClient.sendPayout(
+              Math.floor(payout.amount * 100),
+              stripeId,
+              `Sweatshop Beats payout / ${payout.user.artistName} / ${new Date().toISOString().split('T')[0]}`
+            );
+            console.log(
+              `payment of ${payout.amount} successfully sent to user ${payout.user.artistName}:\npayout ID: ${payoutRes?.id}`
+            );
+            // mark as paid
+            payout.paid = true;
+            await payout.save();
+            // send success email
+            sendPayoutSuccessfulEmail(payout.user.artistName, payout.user.email);
+
+            break;
+
+          default:
+            console.error(
+              `error: invalid payment method detected when making payouts:\nmethod == ${method} for user ${payout.user.artistName}`
+            );
+            sendPayoutErrorEmail(payout.user.artistName, payout.user.email, `We're looking into it`);
+            break;
+        }
+        // send email with summary attached
+      } catch (err) {
+        console.error(err);
+        sendPayoutErrorEmail(payout.user.artistName, payout.user.email, `We're looking into it`);
+      }
+    }
+    return await getPayouts();
+  } catch (err) {
+    console.error(err);
+    return Promise.reject(err);
+  }
 };
-
-// export default class SummaryGenerator {
-//   private CREDIT_VALUE = 6.5;
-//   private transactionsMap: Map<string, Transaction[]>;
-//   private summaryMap: Map<string, ISummaryRow[]>;
-
-//   constructor() {
-//     this.transactionsMap = new Map<string, Transaction[]>();
-//     this.summaryMap = new Map<string, ISummaryRow[]>();
-//   }
-
-//   public mapTransactions(transactions: Transaction[]) {
-//     for (const tx of transactions) {
-//       if (this.transactionsMap.has(tx.beatId)) {
-//         this.transactionsMap.set(tx.beatId, [...(this.transactionsMap.get(tx.beatId) as Transaction[]), tx]);
-//       } else {
-//         this.transactionsMap.set(tx.beatId, [tx]);
-//       }
-//     }
-//   }
-
-//   public mapBeatToSummaryRow(beat: IBeatRes) {
-//     for (const summary of this.summaryMap.get(beat.artistName) as ISummaryRow[]) {
-//       if (summary.id === beat._id) {
-//         const summCopies = this.summaryMap.get(beat.artistName) as ISummaryRow[];
-//         const newSumms = summCopies.map((summ) => {
-//           if (summ.id === beat._id) {
-//             return { ...summ, downloads: summ.downloads++, owed: (summ.owed += CREDIT_VAL) };
-//           } else {
-//             return summ;
-//           }
-//         });
-//         this.summaryMap.set(beat.artistName, newSumms);
-//       }
-//     }
-//   }
-
-//   public generateSummaries() {}
-// }
