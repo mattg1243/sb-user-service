@@ -7,6 +7,7 @@ import License from './License.entity';
 import Transaction from './Transaction.model';
 import EmailVerify from './EmailVerify.entity';
 import CreditAllocation from './CreditAllocation.model';
+import Payout from './Payout.entity';
 
 @Entity('users')
 export default class User extends Model {
@@ -59,8 +60,12 @@ export default class User extends Model {
   @OneToMany(() => Transaction, (transaction) => transaction.sellingUser)
   sellTransactions: Transaction[];
 
+  @OneToMany(() => Payout, (payout) => payout.user)
+  payouts: Payout[];
+  
   @Column({ default: 0 })
   creditsAcquired: number;
+  
   @Column({ default: '' })
   payoutMethod: 'stripe' | 'paypal';
   // this one will not reset
