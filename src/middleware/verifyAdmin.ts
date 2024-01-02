@@ -16,6 +16,8 @@ export const verifyAdmin = (req: Request, res: Response, next: NextFunction) => 
     // matt - dev
     decodedToken?.user.id === '2f4f569c-d3ec-4329-a7a9-e656028d3ed0'
   ) {
+    req.user = decodedToken.user;
+    req.token = token;
     next();
   } else {
     return res.status(401).send();
