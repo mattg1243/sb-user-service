@@ -35,6 +35,9 @@ import { setUserRefCode } from '../handlers/UserHandlers/setUserRefCode';
 import { getUsersHandler } from '../handlers/UserHandlers/getUsers';
 import { adminSearchUsersHandlers } from '../handlers/UserHandlers/adminSearchUsers';
 import { getConnectAccountUrlHandler, saveMerchantIdHandler } from '../handlers/PayPal.handler';
+import { generatePayoutSummaries } from '../cron/payout';
+import { createTransactionHandler, getTransactionsHandler } from '../handlers/TransactionHandlers';
+import { getPayoutsHandler } from '../handlers/PayoutHandlers';
 
 const router = express.Router();
 
@@ -64,7 +67,7 @@ router.post('/change-password', changePasswordHandler);
 router.post('/create-subscription', createSubscriptionHandler);
 router.get('/customer-portal', stripeCustomerPortalHandler);
 // for internal use only
-router.get('/payout-spreadsheets');
+router.get('/make-payouts');
 // PROTECTED
 router.post('/update', verifyUser, updateUserHandler);
 router.post('/avatar', verifyUser, upload.single('newAvatar'), uploadAvatarHandler);
@@ -79,7 +82,11 @@ router.get('/licenses', getLicensedBeatshandler);
 router.get('/sub-ref-code', verifyUser, getUserRefCode);
 router.post('/sub-ref-code', verifyUser, setUserRefCode);
 // only hit from cntrl admin panel
+// TODO move these to the admin router file
 router.get('/admin-search', adminSearchUsersHandlers);
+router.get('/transactions', getTransactionsHandler);
+router.post('/transaction', createTransactionHandler);
+
 router.get(
   '*',
   (res, response, next) => {

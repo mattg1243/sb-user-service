@@ -1,12 +1,13 @@
 import { Request, Response } from 'express';
 import User from '../../../database/models/User.entity';
-import { getUsers } from '../../../services/User.service';
+import { findUsers, getUsers } from '../../../services/User.service';
 import { FindOptionsOrder } from 'typeorm';
 
 type SortByOptions = 'name' | 'email' | 'date';
 type OrderOptions = 'ASC' | 'DESC';
 
 export const getUsersHandler = async (req: Request, res: Response) => {
+  const ids = req.query.ids as string;
   const take = req.query.take as string;
   const skip = req.query.skip as string;
   const sort = req.query.sort as SortByOptions;
@@ -28,6 +29,13 @@ export const getUsersHandler = async (req: Request, res: Response) => {
       return res.status(200).json(users);
     } catch (err) {
       return res.status(500).json({ message: 'An error occurred', err });
+    }
+  } else if (ids) {
+    try {
+      users = await findUsers(ids.split(','));
+      return res.status(200).json(users);
+    } catch (err) {
+      return res.status(500).json(err);
     }
   } else {
     try {

@@ -1,7 +1,7 @@
 import { AppDataSource } from '../database/dataSource';
 import Transaction from '../database/models/Transaction.model';
 import { ICreateTransactionSchema } from '../database/schemas/Transaction.schema';
-import { Between } from 'typeorm';
+import { Between, FindOptionsSelect, FindOptionsSelectByString, FindOptionsWhere } from 'typeorm';
 import User from '../database/models/User.entity';
 
 export namespace TransactionServices {
@@ -16,6 +16,19 @@ export namespace TransactionServices {
     tx.purchasingUser = input.purchasingUser;
     tx.sellingUser = input.sellingUser;
     return await transactionRepository.save(tx);
+  };
+  /**
+   * Gets all transactions if no WHERE / SELECT provided
+   */
+  interface IGetTransactionsArg {
+    where?: FindOptionsWhere<Transaction> | FindOptionsWhere<Transaction>[];
+    select?: FindOptionsSelect<Transaction> | FindOptionsSelectByString<Transaction>;
+  }
+  export const getTransactions = async (args?: IGetTransactionsArg) => {
+    return await transactionRepository.find({
+      where: args?.where,
+      select: { ...args?.select, sellingUser: { _id: true } },
+    });
   };
   /**
    * Gets all transactions in which the provided user is the buyer of the beat. If
@@ -65,7 +78,11 @@ export namespace TransactionServices {
   /**
    * Gets all transactions that fall within a given date range
    */
-  export const getTransactionsInDateRange = async (start: Date, end: Date) => {
-    return await transactionRepository.find({ where: { created_at: Between(start, end) } });
+  export const getTransactionsInDateRange = async (start: Date, end: Date, query?: IGetTransactionsArg) => {
+    return await transactionRepository.find({
+      relations: { sellingUser: true, payout: true },
+      select: { ...query?.select, sellingUser: { _id: true, artistName: true }, payout: { _id: true } },
+      where: { ...query?.where, created_at: Between(start, end) },
+    });
   };
 }

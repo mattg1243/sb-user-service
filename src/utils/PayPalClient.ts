@@ -10,6 +10,12 @@ const API_URL = dev ? 'https://api-m.sandbox.paypal.com' : 'https://api-m.paypal
 const CLIENT_ID = process.env.PAYPAL_CLIENT_ID;
 const CLIENT_SECRET = process.env.PAYPAL_SECRET;
 
+
+
+/**
+ * All PayPal logic utilized by the user service. This service does NOT handle
+ * sending out payment but does handle connecting and managing accounts.
+ */
 export default class PayPalClient {
   private token: string;
 
@@ -81,7 +87,16 @@ export default class PayPalClient {
     }
   }
 
-  async sendPayout(merchantId: string, amount: number) {
-    console.log('sending payout of amount' + amount + 'to user' + merchantId);
-  }
+  // createPayoutItem(paypalId: string, amount: number) {
+  //   return {
+  //     receiver: paypalId,
+  //     amount: {
+  //       currency: 'USD',
+  //       value: amount,
+  //     },
+  //     recipient_type: 'PAYPAL_ID',
+  //   };
+  // }
+
+  // async sendPayouts(payoutFiles: string) {}
 }
