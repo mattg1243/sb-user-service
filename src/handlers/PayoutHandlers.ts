@@ -1,24 +1,8 @@
 import { Request, Response } from 'express';
 import Payout from '../database/models/Payout.entity';
-import { createPayout, getPayouts, getPayoutsInDateRange } from '../services/Payout.service';
-import { ICreatePayoutArgs, ICreatePayoutBody } from '../database/schemas/Payout.schema';
-import { FindOptionsWhere, In } from 'typeorm';
-import { findUserById } from '../services/User.service';
-
-// export const createPayoutHandler = async (req: Request<{}, {}, ICreatePayoutBody>, res: Response) => {
-//   const { amount, creditValue, downloads, userId } = req.body;
-//   try {
-//     const userObj = await findUserById(userId);
-//     if (!userObj) {
-//       return res.status(400).json({ message: 'No user found from request' });
-//     }
-//     const payout = await createPayout({ amount, creditValue, downloads, user: userObj });
-//     return res.status(200).json(payout);
-//   } catch (err) {
-//     console.error(err);
-//     return res.status(500).json(err);
-//   }
-// };
+import { getPayouts, getPayoutsInDateRange } from '../services/Payout.service';
+import { In } from 'typeorm';
+import { sendPayouts } from '../cron/payout';
 
 export const getPayoutsHandler = async (req: Request, res: Response) => {
   const ids = req.query.ids as string;
@@ -50,5 +34,21 @@ export const getPayoutsHandler = async (req: Request, res: Response) => {
   } catch (err) {
     console.error(err);
     return res.status(500).json({ err });
+  }
+};
+
+export const sendPayoutsHandler = async (req: Request, res: Response) => {
+  const user = req.user;
+  if (!user) {
+    console.error('No amdin user found in send-payout request');
+    return res.status(401).json({ message: 'No amdin user found in send-payout request' });
+  }
+  console.log('payouts initiated by admin user ' + user?.email);
+  try {
+    const payouts = await sendPayouts();
+    return res.status(200).json({ message: 'Payouts sent out successfully', payouts });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json(err);
   }
 };
