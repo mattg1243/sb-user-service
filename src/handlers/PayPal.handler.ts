@@ -20,7 +20,7 @@ export const getConnectAccountUrlHandler = async (req: Request, res: Response) =
     } else {
       return res.status(404).json({ message: 'Unable to find a user with that ID' });
     }
-    const paypalRes = await paypalClient.getConnectAccountUrl(user.id, user.artistName);
+    const paypalRes = await paypalClient.getConnectAccountUrl(user.artistName, user.id);
     return res.status(200).json(paypalRes);
   } catch (err) {
     res.status(500).json(err);
