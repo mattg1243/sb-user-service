@@ -51,3 +51,9 @@ export const getPayoutsByUser = async (userId: string) => {
     where: { user: { _id: userId } },
   });
 };
+
+export const clearPayouts = async () => {
+  const allPayouts = await getPayouts();
+  const allIds = allPayouts.map((p) => p._id);
+  return await payoutRepository.delete(allIds);
+};

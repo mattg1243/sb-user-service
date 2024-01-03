@@ -20,7 +20,7 @@ export default class Transaction extends Model {
   @JoinColumn()
   sellingUser: User;
 
-  @ManyToOne(() => Payout, (payout) => payout.transactions, { nullable: true })
+  @ManyToOne(() => Payout, (payout) => payout.transactions, { nullable: true, onDelete: 'SET NULL' })
   payout: Payout;
 
   @OneToOne(() => License, (license) => license.transaction)
