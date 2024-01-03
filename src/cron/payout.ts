@@ -183,8 +183,6 @@ const writeSummaryFile = async (summary: [string, ISummaryRow[]]) => {
       user: user,
       transactions: transactions,
     });
-    // write to disc
-    fs.writeFileSync(fileName, fileStr);
     return payout;
   } catch (err) {
     console.error(err);
