@@ -1,6 +1,6 @@
 import * as express from 'express';
 import { generatePayoutSummaries } from '../cron/payout';
-import { getPayoutsHandler, sendPayoutsHandler } from '../handlers/PayoutHandlers';
+import { clearPayoutsHandler, getPayoutsHandler, sendPayoutsHandler } from '../handlers/PayoutHandlers';
 import { getPayouts } from '../services/Payout.service';
 
 const router = express.Router();
@@ -17,5 +17,6 @@ router.post('/payouts', async (req: express.Request, res: express.Response) => {
 });
 router.post('/send-payouts', sendPayoutsHandler);
 router.get('/payouts', getPayoutsHandler);
+router.delete('/payouts', clearPayoutsHandler);
 
 export default router;

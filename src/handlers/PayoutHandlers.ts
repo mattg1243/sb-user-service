@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import Payout from '../database/models/Payout.entity';
-import { getPayouts, getPayoutsInDateRange } from '../services/Payout.service';
+import { clearPayouts, getPayouts, getPayoutsInDateRange } from '../services/Payout.service';
 import { In } from 'typeorm';
 import { sendPayouts } from '../cron/payout';
 
@@ -47,6 +47,22 @@ export const sendPayoutsHandler = async (req: Request, res: Response) => {
   try {
     const payouts = await sendPayouts();
     return res.status(200).json({ message: 'Payouts sent out successfully', payouts });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json(err);
+  }
+};
+
+export const clearPayoutsHandler = async (req: Request, res: Response) => {
+  const user = req.user;
+  if (!user) {
+    console.error('No amdin user found in send-payout request');
+    return res.status(401).json({ message: 'No amdin user found in send-payout request' });
+  }
+  console.log('payouts cleared by admin user ' + user.email);
+  try {
+    await clearPayouts();
+    return res.status(200).json({ message: 'Payouts cleared' });
   } catch (err) {
     console.error(err);
     return res.status(500).json(err);
