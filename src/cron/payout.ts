@@ -158,7 +158,9 @@ const writeSummaryFile = async (summary: [string, ISummaryRow[]]) => {
     for (const beat of summary[1]) {
       totalOwed += beat.owed;
       totalDownloads += beat.downloads;
-      const line = `${beat.id},${beat.title},${beat.uploadDate},${beat.downloads},${beat.owed}\n`;
+      const line = `${beat.id},${beat.title},${new Date(beat.uploadDate).toISOString().split('T')[0]},${
+        beat.downloads
+      },${moneyFormatter.format(beat.owed)}\n`;
       csv += line;
       transactions.push(...beat.transactions);
     }
