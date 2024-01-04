@@ -23,6 +23,10 @@ export default class Payout extends Model {
   @OneToMany(() => Transaction, (tx) => tx.payout)
   transactions: Transaction[];
 
+  // external id saved in payment processors system, payout_batch_id in paypal and tr_id in stripe
+  @Column({ nullable: true })
+  processorId: string;
+
   @Column({ nullable: true })
   paidDate: Date;
   // csv string that contains the payout summary sent to the user
