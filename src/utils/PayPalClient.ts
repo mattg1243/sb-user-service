@@ -10,8 +10,20 @@ const API_URL = dev ? 'https://api-m.sandbox.paypal.com' : 'https://api-m.paypal
 const CLIENT_ID = process.env.PAYPAL_CLIENT_ID;
 const CLIENT_SECRET = process.env.PAYPAL_SECRET;
 
+// private interfaces
+export interface ICreatePayoutItemArgs {
+  paypalId: string;
+  amount: number;
+}
 
-
+interface IPayoutItem {
+  receiver: string;
+  amount: {
+    currency: string;
+    value: number;
+  };
+  recipient_type: string;
+}
 /**
  * All PayPal logic utilized by the user service. This service does NOT handle
  * sending out payment but does handle connecting and managing accounts.
@@ -87,16 +99,39 @@ export default class PayPalClient {
     }
   }
 
-  // createPayoutItem(paypalId: string, amount: number) {
-  //   return {
-  //     receiver: paypalId,
-  //     amount: {
-  //       currency: 'USD',
-  //       value: amount,
-  //     },
-  //     recipient_type: 'PAYPAL_ID',
-  //   };
-  // }
+  /**
+   * Creates a batch of payout items and initiates batch payment
+   * @param payments - array of payout items
+   * @param payoutId - payout database id to store in paypal
+   * @returns batch payout response from api
+   */
+  async sendPayout(payment: IPayoutItem, payoutId: string) {
+    try {
+      const res = await axios.post(
+        `${API_URL}/v1/payments/payouts`,
+        { items: [payment], sender_batch_header: { sender_batch_id: payoutId } },
+        { headers: { Authorization: `Bearer ${this.token}` } }
+      );
+      return res.data;
+    } catch (err) {
+      console.error(err);
+      return Promise.reject(err);
+    }
+  }
 
-  // async sendPayouts(payoutFiles: string) {}
+  /**
+   * Creates a payout object to be sent to the api to initiate a payout
+   * @param args - composed of paypalId and amount
+   * @returns paypal payout item per api spec
+   */
+  createPayoutItem(args: ICreatePayoutItemArgs): IPayoutItem {
+    return {
+      receiver: args.paypalId,
+      amount: {
+        currency: 'USD',
+        value: args.amount,
+      },
+      recipient_type: 'PAYPAL_ID',
+    };
+  }
 }
