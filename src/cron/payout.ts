@@ -10,7 +10,7 @@ import fs from 'fs';
 import { createPayout, getPayouts } from '../services/Payout.service';
 import Payout from '../database/models/Payout.entity';
 import StripeClient from '../utils/StripeClient';
-import PayPalClient from '../utils/PayPalClient';
+import PayPalClient, { ICreatePayoutItemArgs } from '../utils/PayPalClient';
 import { FindOptionsWhere, In } from 'typeorm';
 import { sendPayoutErrorEmail, sendPayoutSuccessfulEmail } from '../utils/sendgridConfig';
 
@@ -207,7 +207,7 @@ export const sendPayouts = async (ids?: string[]) => {
     const payouts = await getPayouts({
       where: { paid: false },
     });
-    console.log(payouts[0].user);
+
     for (const payout of payouts) {
       try {
         // determine payout method
@@ -232,8 +232,17 @@ export const sendPayouts = async (ids?: string[]) => {
               // );
               continue;
             }
-            // send
-            // send success email - "Your funds are on the way!"
+            const payoutItem = paypalClient.createPayoutItem({ paypalId, amount: payout.amount });
+            const paypalPayoutres = await paypalClient.sendPayout(payoutItem, payout._id);
+            // update payout db row
+            payout.processorId = paypalPayoutres?.batch_header.payout_batch_id;
+            payout.paid = true;
+            await payout.save();
+            console.log(
+              `payment of ${moneyFormatter.format(payout.amount)} successfully sent to user ${
+                payout.user.artistName
+              }:\npayout ID: ${paypalPayoutres?.batch_header.payout_batch_id}`
+            );
             break;
           case 'stripe':
             const stripeId = payout.user.stripeConnectId;
@@ -255,9 +264,12 @@ export const sendPayouts = async (ids?: string[]) => {
               `Sweatshop Beats payout / ${payout.user.artistName} / ${new Date().toISOString().split('T')[0]}`
             );
             console.log(
-              `payment of ${payout.amount} successfully sent to user ${payout.user.artistName}:\npayout ID: ${payoutRes?.id}`
+              `payment of ${moneyFormatter.format(payout.amount)} successfully sent to user ${
+                payout.user.artistName
+              }:\npayout ID: ${payoutRes?.id}`
             );
             // mark as paid
+            payout.processorId = payoutRes?.id as string;
             payout.paid = true;
             await payout.save();
             // send success email
@@ -278,6 +290,7 @@ export const sendPayouts = async (ids?: string[]) => {
         // sendPayoutErrorEmail(payout.user.artistName, payout.user.email, `We're looking into it`);
       }
     }
+
     return await getPayouts();
   } catch (err) {
     console.error(err);
