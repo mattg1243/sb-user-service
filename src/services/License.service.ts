@@ -30,7 +30,6 @@ export const getAllLicensesByUser = async (userId: string, select?: string[]) =>
       licensesQuery.select(select);
     }
     licenses = await licensesQuery.getMany();
-    console.log('Licenses from user:', licenses);
     return licenses;
   } catch (err) {
     console.error(err);

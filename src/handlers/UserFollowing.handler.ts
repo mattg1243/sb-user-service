@@ -13,10 +13,8 @@ import { p } from '../utils/Rabbitmq';
 // TODO: implement CustomErr class for all thrown errors
 
 export const followUserHandler = async (req: Request<{}, {}, FollowUserInput>, res: Response) => {
-  console.log('follow route hit');
   const user = req.user;
   const { userToFollow } = req.body;
-  console.log('req.body: ', req.body);
 
   if (user && userToFollow) {
     try {
@@ -33,10 +31,8 @@ export const followUserHandler = async (req: Request<{}, {}, FollowUserInput>, r
 };
 
 export const unfollowUserHandler = async (req: Request<{}, {}, UnfollowUserInput>, res: Response) => {
-  console.log('unfollow user route hit');
   const user = req.user;
   const { userToUnfollow } = req.body;
-  console.log('req.body', req.body);
 
   if (user && userToUnfollow) {
     try {
@@ -66,7 +62,6 @@ export const getFollowersHandler = async (req: Request, res: Response) => {
   }
   try {
     const followers = await getFollowers(user as string);
-    console.log('followers from service fn:\n', followers);
     return res.status(200).json({ followers });
   } catch (err) {
     console.error(err);

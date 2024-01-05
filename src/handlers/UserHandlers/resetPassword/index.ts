@@ -14,10 +14,8 @@ export const resetPasswordHandler = async (req: Request, res: Response) => {
     }
     user.setPasswordResetToken();
     const { token: resetToken, exp } = user.getPasswordResetToken();
-    console.log('token made:\n', resetToken);
     await user.save();
     const sendEmailRes = await sendResetPasswordEmail(resetToken, user.email);
-    console.log(sendEmailRes);
     return res.status(200).send();
   } catch (err) {
     console.error(err);

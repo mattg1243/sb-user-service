@@ -62,7 +62,6 @@ export const getFollowers = async (userId: string): Promise<Array<string | null>
       .where('following like :following', { following: `%${userId}%` })
       // .select('UsersFollowing.user_id')
       .getRawMany();
-    console.log('Raw query results:\n', queryResult);
     // extract only the IDs of followers to return
     let followers: Array<string | null>;
     if (!queryResult) {

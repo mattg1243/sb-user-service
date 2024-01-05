@@ -37,7 +37,6 @@ export const registerUserHandler = async (req: Request<{}, {}, CreateUserInput>,
     const verificationCode = await createVerifyEmailCode(user);
     // send the email
     const emailSendInfo = await sendVerificationEmail(verificationCode.hash, user.email, user._id);
-    console.log(emailSendInfo);
     // redirect user to to verify page
     console.log(`  --- user registered : ${artistName}  ---  `);
     // create Stripe customer

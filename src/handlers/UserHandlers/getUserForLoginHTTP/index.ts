@@ -9,7 +9,6 @@ export const getUserForLoginHTTP = async (req: Request, res: Response) => {
   const { email } = req.body;
   try {
     const user = await findUserByEmail(email);
-    console.log(user);
     if (!user) {
       return res.status(401).json({ message: 'No user found with that email address' });
     }

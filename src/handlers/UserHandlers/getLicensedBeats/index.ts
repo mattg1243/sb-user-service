@@ -3,7 +3,6 @@ import { getAllLicensesByUser } from '../../../services/License.service';
 
 export const getLicensedBeatshandler = async (req: Request, res: Response) => {
   const user = req.query.user as string;
-  console.log('getting licenses...');
   try {
     const licenses = await getAllLicensesByUser(user, ['license.beat']);
     let beatIds: Array<string> = [];

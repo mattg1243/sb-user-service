@@ -21,7 +21,6 @@ export const updateUserHandler = async (req: Request<{}, {}, UpdateUserInput>, r
     let socialLinkValidUrl: URL | undefined;
     if (socialLink) {
       socialLinkValidUrl = makeValidUrl(socialLink);
-      console.log('social link domain:', socialLinkValidUrl.hostname);
       if (!validSocialLinkDomains.includes(socialLinkValidUrl.host)) {
         return res.status(400).json({ message: 'Invalid social link' });
       }
@@ -51,7 +50,6 @@ export const updateUserHandler = async (req: Request<{}, {}, UpdateUserInput>, r
         }
       );
     }
-    console.log(updatedUser);
     return res.status(200).json({ message: 'user info successfully updated' });
   } catch (err) {
     console.error(err);

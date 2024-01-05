@@ -156,12 +156,10 @@ export const subCredits = async (userId: string, creditsToSub: number) => {
   if (!user) {
     return Promise.reject('No user found with this ID');
   }
-  console.log('Current credit balance: ', user.creditsToSpend);
   if (user.creditsToSpend - creditsToSub < 0) {
     return Promise.reject('User does not have enough credits for this transaction');
   }
   user.creditsToSpend -= creditsToSub;
-  console.log('New credit balance: ', user.creditsToSpend);
   await userRepository.save(user);
   return Promise.resolve(user.creditsToSpend);
 };

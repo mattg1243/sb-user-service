@@ -24,7 +24,6 @@ export const uploadAvatarHandler = async (req: Request, res: Response) => {
     }
     const avatarKey = uploadAvatarRes.Key;
     const updateUserRes = updateUserById(user.id, { avatar: avatarKey });
-    console.log(updateUserRes);
     fs.unlink(path.join(__dirname, '../../../uploads/', newAvatar.filename), () => {
       return res.status(200).json({ message: 'avatar updated successfully' });
     });

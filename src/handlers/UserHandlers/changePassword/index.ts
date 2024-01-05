@@ -11,12 +11,10 @@ export const changePasswordHandler = async (req: Request, res: Response) => {
   }
 
   const user = await findUserPasswordResetToken(userEmail as string);
-  console.log(user);
   if (!user) {
     return res.status(404).json({ message: 'no user found with that email' });
   }
   const { token, exp } = user.getPasswordResetToken();
-  console.log('resetToken form req:\n', resetToken, '\nfrom db:\n', token);
 
   // check if expiry has past
   if (exp < new Date()) {

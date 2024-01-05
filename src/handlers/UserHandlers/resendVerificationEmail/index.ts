@@ -20,7 +20,6 @@ export const resendVerificationEmailHandler = async (req: Request, res: Response
     }
 
     const sendEmailRes = await sendVerificationEmail(verifyEmail.hash, userEntitiy.email, user as string);
-    console.log(sendEmailRes);
     return res.status(200).json({ message: 'Verification email resent' });
   } catch (err: any) {
     console.error(err);

@@ -133,7 +133,6 @@ export default class StripeClient {
   async getMonthlySubRevenue() {
     const today = new Date();
     const firstOfThisMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-    console.log(firstOfThisMonth.toLocaleString());
     const summary = await this.s.balanceTransactions.list({
       type: 'charge',
       created: { gt: firstOfThisMonth.getTime() / 1000 },
