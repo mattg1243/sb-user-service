@@ -10,11 +10,15 @@ sgMail.setApiKey(sgApiKey);
  * @param userEmail - Users provided email address.
  */
 export const sendVerificationEmail = async (verificationCode: string, userEmail: string, userId: string) => {
+  const verifyUrl = `${CLIENT_HOST}/verify-email?code=${verificationCode}&user=${userId}&email=${userEmail}`;
   const verifyEmail: sgMail.MailDataRequired = {
     to: userEmail,
     from: 'no-reply@orangemusicent.com',
     subject: 'Verify your Sweatshop Beats Account',
-    html: `<p>Visit ${CLIENT_HOST}/verify-email?code=${verificationCode}&user=${userId}&email=${userEmail} to verify your account<p>`,
+    templateId: 'd-1c4e0c086a5d4065a54c474feb47a4b8',
+    dynamicTemplateData: {
+      verifyUrl,
+    },
   };
   return await sgMail.send(verifyEmail);
 };
@@ -26,11 +30,15 @@ export const sendVerificationEmail = async (verificationCode: string, userEmail:
  * @returns
  */
 export const sendResetPasswordEmail = async (resetToken: string, userEmail: string) => {
+  const resetUrl = `${CLIENT_HOST}/reset-password?token=${resetToken}&email=${userEmail}`;
   const resetPasswordEmail: sgMail.MailDataRequired = {
     to: userEmail,
     from: 'no-reply@orangemusicent.com',
     subject: 'Reset your Sweatshop Beats Password',
-    html: `<p>Visit ${CLIENT_HOST}/reset-password?token=${resetToken}&email=${userEmail} to reset your password<p>`,
+    templateId: 'd-c58b5818a4a843529b6682b65b1ef9a9',
+    dynamicTemplateData: {
+      resetUrl,
+    },
   };
   return await sgMail.send(resetPasswordEmail);
 };
