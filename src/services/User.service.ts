@@ -4,7 +4,7 @@ import { CreateUserInput } from '../database/schemas/User.schema';
 import { AppDataSource } from '../database/dataSource';
 import CreditAllocation from '../database/models/CreditAllocation.model';
 import { nanoid } from 'nanoid';
-import { FindOptionsOrder, FindOptionsSelect, In } from 'typeorm';
+import { FindOptionsOrder, FindOptionsSelect, In, ILike } from 'typeorm';
 
 // TODO: implement CustomErr class for all thrown errors
 
@@ -38,7 +38,7 @@ export const deleteVerifyEmailCode = async (id: string) => {
 // NOTE: this does return the password has while selecting by ID does NOT
 export const findUserByEmail = async (email: string, select?: {}) => {
   return await userRepository.findOne({
-    where: { email: email },
+    where: { email: ILike(`%${email}%`) },
     select: {
       _id: true,
       email: true,
