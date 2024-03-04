@@ -42,16 +42,50 @@ export const sendResetPasswordEmail = async (resetToken: string, userEmail: stri
   };
   return await sgMail.send(resetPasswordEmail);
 };
-
-export const sendPayoutSuccessfulEmail = async (artistName: string, userEmail: string) => {
-  const html = `<h1>It's only up from here 💸</h1><h3>Thanks for working with us ${artistName}</h3>`;
-  const email = makeMailData(userEmail, 'Your funds are on the way!', html);
+/**
+ * Sends an email to user when a payout is successfully sent.
+ * @param userEmail
+ * @param paymentPortalUrl - url to open the users preferred payment processors portal
+ * @returns
+ */
+export const sendPayoutSuccessfulEmail = async (
+  artistName: string,
+  userEmail: string,
+  paymentPortalUrl: string,
+  summary: string
+) => {
+  const today = new Date();
+  const dateSuffix = `${today.getMonth() + 1}-${today.getFullYear()}`;
+  const email: sgMail.MailDataRequired = {
+    to: userEmail,
+    from: 'no-reply@orangemusicent.com',
+    subject: 'Redeem your payout',
+    templateId: 'd-b278fedd95fb4f2f805345d4e4bdaaec',
+    dynamicTemplateData: {
+      paymentPortalUrl,
+    },
+    attachments: [
+      {
+        content: Buffer.from(summary).toString('base64'),
+        filename: `${artistName.trim()}-${dateSuffix}.csv`,
+        disposition: 'attachment',
+        type: 'text/csv',
+      },
+    ],
+  };
   return await sgMail.send(email);
 };
 
-export const sendPayoutErrorEmail = async (artistName: string, userEmail: string, reason: string) => {
-  const html = `<h1>There was an error sending your payout</h1><p>${reason}</p>`;
-  const email = makeMailData(userEmail, 'Something went wrong :(', html);
+export const sendPayoutErrorEmail = async (userEmail: string, errDescription: string) => {
+  const email: sgMail.MailDataRequired = {
+    to: userEmail,
+    from: 'no-reply@orangemusicent.com',
+    subject: 'Error processing your payout',
+    templateId: 'd-fac39172eae84f1ba2741fc3d779e6f9',
+    dynamicTemplateData: {
+      errDescription,
+    },
+  };
   return await sgMail.send(email);
 };
 
