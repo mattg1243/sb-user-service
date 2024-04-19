@@ -62,10 +62,10 @@ export default class User extends Model {
 
   @OneToMany(() => Payout, (payout) => payout.user)
   payouts: Payout[];
-  
+
   @Column({ default: 0 })
   creditsAcquired: number;
-  
+
   @Column({ default: '' })
   payoutMethod: 'stripe' | 'paypal';
   // this one will not reset
@@ -101,7 +101,7 @@ export default class User extends Model {
   @Column({ default: '' })
   paypalMerchantId: string;
   // promo code users can share for people to sub with
-  @Column({ nullable: true, select: false })
+  @Column({ nullable: true, select: false, unique: true })
   subRefCode: string;
   // id of referring user if any
   @Column({ nullable: true, select: false })
@@ -118,6 +118,9 @@ export default class User extends Model {
 
   @OneToOne(() => EmailVerify, (emailVerify) => emailVerify.user)
   emailVerify: EmailVerify;
+
+  @Column({ nullable: false, default: false })
+  addedToSendgrid: boolean;
 
   toJSON() {
     return { ...this, password: undefined };
