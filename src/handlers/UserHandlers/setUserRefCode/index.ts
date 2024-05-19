@@ -16,7 +16,7 @@ export const setUserRefCode = async (req: Request, res: Response) => {
     }
     // make sure the ref code is valid
     const referringUser = await findUserBySubRefCode(refCode);
-    if (referringUser) {
+    if (referringUser && referringUser._id !== userId) {
       await saveUserSubReferral(userId, referringUser._id);
       return res.status(200).json({ referringUser: referringUser.artistName });
     } else {
