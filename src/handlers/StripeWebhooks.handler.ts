@@ -107,6 +107,10 @@ export namespace InvoiceEventHandlers {
             break;
         }
       }
+      // catch subscription_updated
+      if (billingReason == 'subscription_update') {
+        CustomerEventHandlers.subscriptionUpdated(subscription);
+      }
     } catch (err) {
       console.error(err);
     }

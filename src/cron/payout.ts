@@ -137,7 +137,7 @@ export const generatePayoutSummaries = async () => {
     // check results
     return payouts;
   } catch (err) {
-    console.error(err);
+    console.log('an error occurred generating payout summaries. check PayPal / stripe logs');
   }
 };
 
