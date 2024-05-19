@@ -199,3 +199,7 @@ export const getUserByStripeConnectId = async (connectId: string) => {
     return user;
   }
 };
+
+export const getNonSubbedUsers = async () => {
+  return await userRepository.find({ where: { subTier: undefined, subReminderSent: false } });
+};
