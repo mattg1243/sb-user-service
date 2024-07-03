@@ -122,6 +122,9 @@ export default class User extends Model {
   @Column({ nullable: false, default: false })
   addedToSendgrid: boolean;
 
+  @Column({ nullable: false, default: false })
+  subReminderSent: boolean;
+
   toJSON() {
     return { ...this, password: undefined };
   }

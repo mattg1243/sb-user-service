@@ -89,6 +89,17 @@ export const sendPayoutErrorEmail = async (userEmail: string, errDescription: st
   return await sgMail.send(email);
 };
 
+export const sendSubReminderEmail = async (userEmail: string) => {
+  const email: sgMail.MailDataRequired = {
+    to: userEmail,
+    from: 'no-reply@orangemusicent.com',
+    subject: 'Thanks for joining Sweatshop Beats!',
+    templateId: 'd-507f0453d2a8452d923994fa543bb085',
+  };
+
+  return await sgMail.send(email);
+};
+
 /**
  * Returns an MailDataRequired object
  * @param to - users email

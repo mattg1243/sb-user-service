@@ -13,6 +13,7 @@ import { getUserForLogin } from './handlers/User.handler';
 import indexRouter from './routes';
 import adminRouter from './routes/admin';
 import { verifyAdmin } from './middleware/verifyAdmin';
+import { sendSubReminderTask } from './cron/subReminder';
 
 dotenv.config();
 
@@ -39,6 +40,10 @@ app.use(cookieParser());
 // routes
 app.use('/admin', verifyAdmin, adminRouter);
 app.use('/', indexRouter);
+// cron tasks
+if (process.env.NODE_ENV === 'production') {
+  sendSubReminderTask.start();
+}
 
 const startGrpcServer = (port: string) => {
   const server = new Server();
