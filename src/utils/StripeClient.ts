@@ -20,16 +20,17 @@ const stripeConfig: stripe.StripeConfig = {
 
 export default class StripeClient {
   readonly s: stripe;
+
   private readonly liveProducts = {
-    // THIS PRICE IS ONLY 1 DOLLAR, CHANGE BEFORE RELEASE
-    basicSub: { prices: ['price_1OULRbDvAr9mohsEZOwEDaH2'], product: 'prod_OD6dnPXf8qYZ2j' },
-    stdSub: { prices: ['price_1Ndlb7DvAr9mohsE2wKtbaiD'], product: 'prod_OD6oUoJy4Vkoq7' },
-    premSub: { prices: ['price_1NdlcGDvAr9mohsEkIpop0uG'], product: 'prod_ODUuxPkQNir3Z2' },
+    basicSub: { prices: ['price_1OULRbDvAr9mohsEZOwEDaH2'], product: 'prod_OD6dnPXf8qYZ2j', coupon: 'Ly4apepe' },
+    stdSub: { prices: ['price_1Ndlb7DvAr9mohsE2wKtbaiD'], product: 'prod_OD6oUoJy4Vkoq7', coupon: '14kdyCSp' },
+    premSub: { prices: ['price_1NdlcGDvAr9mohsEkIpop0uG'], product: 'prod_ODUuxPkQNir3Z2', coupon: 'PetNqLpF' },
   };
+
   private readonly testPrices = {
     // pricing is not accurate in development
     basicSub: { prices: ['price_1NRNMNDvAr9mohsEZ50muJeR'], product: 'prod_ODp0PzbxUWTSvf' },
-    stdSub: { prices: ['price_1NSSn9DvAr9mohsEFJM6Mn81'], product: 'prod_OEwgdKCaGkjdWE' },
+    stdSub: { prices: ['price_1NSSn9DvAr9mohsEFJM6Mn81'], product: 'prod_OEwgdKCaGkjdWE', coupon: 'CcNHyn55' },
     premSub: { prices: ['price_1NSSnqDvAr9mohsEe4CeMWCu'], product: 'prod_OEwgdKCaGkjdWE' },
   };
   // this needs typing
@@ -73,6 +74,7 @@ export default class StripeClient {
           price: this.products[subTier],
         },
       ],
+      coupon: this.products[subTier].coupon,
       payment_behavior: 'default_incomplete',
       payment_settings: { save_default_payment_method: 'on_subscription' },
       expand: ['latest_invoice.payment_intent'],
