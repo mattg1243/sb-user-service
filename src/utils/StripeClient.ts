@@ -74,7 +74,6 @@ export default class StripeClient {
           price: this.products[subTier],
         },
       ],
-      coupon: this.products[subTier].coupon,
       payment_behavior: 'default_incomplete',
       payment_settings: { save_default_payment_method: 'on_subscription' },
       expand: ['latest_invoice.payment_intent'],
@@ -87,6 +86,11 @@ export default class StripeClient {
         {
           price: this.products[subTier].prices[0],
           quantity: 1,
+        },
+      ],
+      discounts: [
+        {
+          coupon: this.products[subTier].coupon,
         },
       ],
       mode: 'subscription',
