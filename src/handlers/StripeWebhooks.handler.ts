@@ -18,6 +18,7 @@ export namespace CustomerEventHandlers {
       const user = await getUserByStripeCustomerId(customerObj.id);
       user.stripeCustomerId = '';
       user.setSubStatus('canceled');
+      user.creditsToSpend = 0;
       user.save();
     } catch (err) {
       console.error(err);
@@ -49,6 +50,9 @@ export namespace CustomerEventHandlers {
     try {
       const user = await getUserByStripeCustomerId(subscriptionObj.customer as string);
       user.setSubStatus(subscriptionObj.status);
+      if (subscriptionObj.status == 'canceled') {
+        user.creditsToSpend = 0;
+      }
       user.save();
     } catch (err) {
       console.error(err);
