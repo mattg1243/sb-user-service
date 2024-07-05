@@ -1,3 +1,4 @@
+import { getUserSubTierHandler } from './getUserSubTier/index';
 export { getUserHandler } from './getUser';
 export { searchUsersHandlers } from './searchUser';
 export { getAvatarHandler } from './getAvatar';
@@ -15,3 +16,4 @@ export { purchaseBeatHandler } from './purchaseBeat';
 export { getLicensedBeatshandler } from './getLicensedBeats';
 export { getCreditsBalanceHandler } from './getCreditsBalance';
 export { getUserForLoginHTTP } from './getUserForLoginHTTP';
+export { getUserSubTierHandler } from './getUserSubTier';

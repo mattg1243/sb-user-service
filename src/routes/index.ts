@@ -38,6 +38,7 @@ import { getConnectAccountUrlHandler, saveMerchantIdHandler } from '../handlers/
 import { generatePayoutSummaries } from '../cron/payout';
 import { createTransactionHandler, getTransactionsHandler } from '../handlers/TransactionHandlers';
 import { getPayoutsHandler } from '../handlers/PayoutHandlers';
+import { getUserSubTierHandler } from '../handlers/UserHandlers/getUserSubTier';
 
 const router = express.Router();
 
@@ -47,6 +48,7 @@ const upload = multer({
 
 router.get('/', getUserHandler);
 router.get('/users', getUsersHandler);
+router.get('/sub-tier', verifyUser, getUserSubTierHandler);
 router.get('/notify-test', testNotifyHandler);
 router.get('/rabbit-test', testQueueHandler);
 // router.get('/rabbit-consume-test', testConsumeQueueHandler);
