@@ -25,7 +25,7 @@
     "@types/multer": "^1.4.7",
     "amqplib": "^0.10.3",
     "aws-sdk": "^2.1288.0",
-    "axios": "^1.6.2",
+    "axios": "^1.7.4",
     "bcrypt": "^5.1.0",
     "class-validator": "^0.14.0",
     "cookie-parser": "^1.4.6",
