@@ -1,4 +1,4 @@
-import { object, string, TypeOf, z, date } from 'zod';
+import { object, string, number, TypeOf, z, date } from 'zod';
 
 export const createUserSchema = object({
   body: object({
@@ -22,6 +22,9 @@ export const createUserSchema = object({
       .min(8, 'Password must be more than 8 characters')
       .max(32, 'Password must be less than 32 characters'),
     stripeCustomerId: string(),
+    subTier: string().optional(),
+    stripeSubStatus: string().optional(),
+    creditsToSpend: number().optional(),
   }),
 });
 
@@ -43,13 +46,7 @@ export const loginUserSchema = object({
 });
 
 // valid hostnames for social links
-export const validSocialLinkDomains = [
-  'youtube.com',
-  'twitter.com',
-  'spotify.com',
-  'linktr.ee',
-  'instagram.com',
-];
+export const validSocialLinkDomains = ['youtube.com', 'twitter.com', 'spotify.com', 'linktr.ee', 'instagram.com'];
 const socialLinkRegex =
   /(https?:\/\/(.+?\.)?(?:www\.)?(youtube.com|twitter.com|spotify.com|linktr.ee|instagram.com)(\/[A-Za-z0-9\-\._~:\/\?#\[\]@!$&'\(\)\*\+,;\=]*)?)/;
 export const updateUserSchema = object({
