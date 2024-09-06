@@ -4,7 +4,7 @@ import { CreateUserInput } from '../database/schemas/User.schema';
 import { AppDataSource } from '../database/dataSource';
 import CreditAllocation from '../database/models/CreditAllocation.model';
 import { nanoid } from 'nanoid';
-import { FindOptionsOrder, FindOptionsSelect, In, ILike } from 'typeorm';
+import { FindOptionsOrder, FindOptionsSelect, In, ILike, FindOptionsSelectByString } from 'typeorm';
 
 // TODO: implement CustomErr class for all thrown errors
 
@@ -36,19 +36,12 @@ export const deleteVerifyEmailCode = async (id: string) => {
   return await emailVerifyRepository.delete({ _id: id });
 };
 // NOTE: this does return the password has while selecting by ID does NOT
-export const findUserByEmail = async (email: string, select?: {}) => {
-  return await userRepository.findOne({
-    where: { email: ILike(`%${email}%`) },
-    select: {
-      _id: true,
-      email: true,
-      artistName: true,
-      password: true,
-      verified: true,
-      stripeCustomerId: true,
-      subTier: true,
-    },
-  });
+export const findUserByEmail = async (email: string) => {
+  return await userRepository
+    .createQueryBuilder('user')
+    .where('LOWER(user.email) = LOWER(:email)', { email })
+    .addSelect('user.password')
+    .getOne();
 };
 
 export const findUserById = async (userId: string) => {
@@ -59,8 +52,8 @@ export const findUser = async (query: Object) => {
   return await userRepository.findOneBy(query);
 };
 
-export const findUserByArtistName = async (artistName: string) => {
-  return await userRepository.findOneBy({ artistName });
+export const findUserByArtistName = async (artistName: string, select?: FindOptionsSelect<User>) => {
+  return await userRepository.findOne({ where: { artistName }, select });
 };
 
 export const findUsers = async (userIds: string[], select?: FindOptionsSelect<User>) => {
